@@ -119,9 +119,9 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         # Select model file
         #
         self.modelPath = ctk.ctkPathLineEdit()
-        self.modelPath.filters = ctk.ctkPathLineEdit.Dirs
-        # self.modelPath.nameFilters= ["Model (*.pth)"]
-        self.modelPath.setToolTip("Select the segmentation model directory")
+        self.modelPath.filters = ctk.ctkPathLineEdit.Files
+        self.modelPath.nameFilters= ["Model (*.pth)"]
+        self.modelPath.setToolTip("Select the segmentation model")
         parametersFormLayout.addRow("Model directory: ", self.modelPath)
 
         #
@@ -248,9 +248,9 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         ).to(device)
 
         if device.type == "cpu":
-            net.load_state_dict(torch.load(os.path.join(modelPath, "best_metric_model.pth"), map_location='cpu'))
+            net.load_state_dict(torch.load(modelPath, map_location='cpu'))
         else:
-            net.load_state_dict(torch.load(os.path.join(modelPath, "best_metric_model.pth")))
+            net.load_state_dict(torch.load(modelPath))
         net.eval()
 
         with torch.no_grad():

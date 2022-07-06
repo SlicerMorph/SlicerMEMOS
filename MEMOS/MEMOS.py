@@ -31,9 +31,9 @@ class MEMOS(ScriptedLoadableModule):
           if not slicer.util.confirmOkCancelDisplay(f"MEMOS requires installation of MONAI (version {monaiVersion}).\nClick OK to install this version and restart Slicer."):
             self.showBrowserOnEnter = False
             return
-          slicer.util.pip_install('monai[itk]=='+ monaiVersion)
+          slicer.util.pip_install('monai=='+ monaiVersion)
       except:
-        slicer.util.pip_install('monai[itk]=='+ monaiVersion)
+        slicer.util.pip_install('monai=='+ monaiVersion)
       try:
         import pillow
       except:
@@ -64,7 +64,7 @@ class MEMOS(ScriptedLoadableModule):
         ScriptedLoadableModule.__init__(self, parent)
         self.installLibs()
         self.parent.title = "MEMOS"  # TODO make this more human readable by adding spaces
-        self.parent.categories = ["MEMOS"]
+        self.parent.categories = ["SlicerMorph.SlicerMorph Utilities"]
         self.parent.dependencies = []
         self.parent.contributors = [
             "Sara Rolfe (UW), Murat Maga (UW)"]  # replace with "Firstname Lastname (Organization)"
@@ -248,7 +248,6 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         import numpy as np
         import torch
         import einops
-        import itk
 
         from monai.config import print_config
         from monai.data import Dataset, DataLoader, create_test_image_3d, decollate_batch

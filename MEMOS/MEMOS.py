@@ -1,7 +1,7 @@
 import os
 import unittest
 import logging
-import vtk, qt, ctk, slicer, itk
+import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 
@@ -248,6 +248,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         import numpy as np
         import torch
         import einops
+        import itk
 
         from monai.config import print_config
         from monai.data import Dataset, DataLoader, create_test_image_3d, decollate_batch

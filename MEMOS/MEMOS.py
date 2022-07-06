@@ -211,8 +211,9 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         if os.path.isdir(tempVolumePath):
           shutil.rmtree(tempVolumePath)
         os.mkdir(tempVolumePath)
-        tempVolumeFile = os.path.join(tempVolumePath, 'tempVolumeFile.nii.gz')
-        slicer.util.saveNode(self.volumeSelector.currentNode(), tempVolumeFile)
+        volumeNode = self.volumeSelector.currentNode()
+        tempVolumeFile = os.path.join(tempVolumePath, volumeNode.GetName() +'.nii.gz')
+        slicer.util.saveNode(volumeNode, tempVolumeFile)
         tempOutputPath = os.path.join(slicer.app.temporaryPath,'tempMEMOSOut')
         if os.path.isdir(tempOutputPath):  
           shutil.rmtree(tempOutputPath)
@@ -223,8 +224,11 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
           segmentationFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
         else: 
           print("No segmentation found")
-        print(segmentationFile , "segmentationFile")
-        slicer.util.loadSegmentation(segmentationFile)
+        segmentationNode = slicer.util.loadSegmentation(segmentationFile)
+        shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
+        volID = shNode.GetItemByDataNode(volumeNode)
+        segID = shNode.GetItemByDataNode(segmentationNode)
+        shNode.SetItemParent(segID,volID)
         shutil.rmtree(tempVolumePath)
         shutil.rmtree(tempOutputPath)
 

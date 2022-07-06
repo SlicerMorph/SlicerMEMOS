@@ -136,7 +136,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         singleParametersFormLayout.addRow(self.applySingleButton)
 
         # connections
-        self.volumeSelector.connect('currentNodeChanged(const QString &)', self.onSelectSingle)
+        self.volumeSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingle)
         self.modelPathSingle.connect('currentPathChanged(const QString &)', self.onSelectSingle)
         self.applySingleButton.connect('clicked(bool)', self.onApplySingleButton)
 
@@ -197,7 +197,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.layout.addStretch(1)
 
     def onSelectSingle(self):
-        self.applySingleButton.enabled = bool(self.volumeSelector.currentNode and self.modelPathSingle.currentPath)
+        self.applySingleButton.enabled = bool(self.volumeSelector.currentNode() and self.modelPathSingle.currentPath)
         
     def onSelect(self):
         self.applyButton.enabled = bool(self.modelPath.currentPath and self.volumePath.currentPath and self.outputPath.currentPath)

@@ -9,6 +9,7 @@ import logging
 import os
 import sys
 import tempfile
+import shutil
 from glob import glob
 
 #
@@ -18,37 +19,16 @@ class MEMOS(ScriptedLoadableModule):
     """Uses ScriptedLoadableModule base class, available at:
       https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
       """
-
-    def __init__(self, parent):
-        ScriptedLoadableModule.__init__(self, parent)
-        self.parent.title = "MEMOS"  # TODO make this more human readable by adding spaces
-        self.parent.categories = ["SlicerMorph.SlicerMorph Utilities"]
-        self.parent.dependencies = []
-        self.parent.contributors = [
-            "Sara Rolfe (UW), Murat Maga (UW)"]  # replace with "Firstname Lastname (Organization)"
-        self.parent.helpText = """
-      This model loads a PyTorch Deep Learning model and does inference on an image loaded in the scene.
-      """
-        self.parent.acknowledgementText = """
-      This module was developed by Sara Rolfe for SlicerMorph. SlicerMorph was originally supported by an NSF/DBI grant, "An Integrated Platform for Retrieval, Visualization and Analysis of 3D Morphology From Digital Biological Collections" 
-      awarded to Murat Maga (1759883), Adam Summers (1759637), and Douglas Boyer (1759839). 
-      https://nsf.gov/awardsearch/showAward?AWD_ID=1759883&HistoricalAwards=false
-      """  # replace with organization, grant and thanks.
-
-class MEMOSWidget(ScriptedLoadableModuleWidget):
-    """Uses ScriptedLoadableModuleWidget base class, available at:
-      https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-      """
     def installLibs(self):
       needRestart = False
       # MONAI
-      monaiVersion = "0.8.0"
+      monaiVersion = "0.9.0"
       try:
         import monai
         if version.parse(monai.__version__) != version.parse(monaiVersion):
           slicer.util.pip_uninstall('monai')
-          needRestart=1
-          if not slicer.util.confirmOkCancelDisplay(f"MEMO requires installation of MONAI (version {monaiVersion}).\nClick OK to install this version and restart Slicer."):
+          needRestart=True
+          if not slicer.util.confirmOkCancelDisplay(f"MEMOS requires installation of MONAI (version {monaiVersion}).\nClick OK to install this version and restart Slicer."):
             self.showBrowserOnEnter = False
             return
           slicer.util.pip_install('monai=='+ monaiVersion)
@@ -79,32 +59,145 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
           print("OS not recognized: Dependencies will not be installed")
       if needRestart:
         slicer.util.restart()
+
+    def __init__(self, parent):
+        ScriptedLoadableModule.__init__(self, parent)
+        self.installLibs()
+        self.parent.title = "MEMOS"  # TODO make this more human readable by adding spaces
+        self.parent.categories = ["SlicerMorph.SlicerMorph Utilities"]
+        self.parent.dependencies = []
+        self.parent.contributors = [
+            "Sara Rolfe (UW), Murat Maga (UW)"]  # replace with "Firstname Lastname (Organization)"
+        self.parent.helpText = """
+      This model loads a PyTorch Deep Learning model and does inference on an image loaded in the scene.
+      """
+        self.parent.acknowledgementText = """
+      This module was developed by Sara Rolfe for SlicerMorph. SlicerMorph was originally supported by an NSF/DBI grant, "An Integrated Platform for Retrieval, Visualization and Analysis of 3D Morphology From Digital Biological Collections" 
+      awarded to Murat Maga (1759883), Adam Summers (1759637), and Douglas Boyer (1759839). 
+      https://nsf.gov/awardsearch/showAward?AWD_ID=1759883&HistoricalAwards=false
+      """  # replace with organization, grant and thanks.
+
+class MEMOSWidget(ScriptedLoadableModuleWidget):
+    """Uses ScriptedLoadableModuleWidget base class, available at:
+      https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+      """
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
-        self.installLibs()
+        # Set up tabs to split workflow
+        tabsWidget = qt.QTabWidget()
+        singleTab = qt.QWidget()
+        singleTabLayout = qt.QFormLayout(singleTab)
+        batchTab = qt.QWidget()
+        batchTabLayout = qt.QFormLayout(batchTab)
+        tabsWidget.addTab(singleTab, "Single volume")
+        tabsWidget.addTab(batchTab, "Batch mode")
+        self.layout.addWidget(tabsWidget)
+
+        ################################### Single Tab ###################################
         # Instantiate and connect widgets
         #
-        # Parameters Area
+        # Segmentation Set-up Area
         #
-        parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-        parametersCollapsibleButton.text = "Parameters"
-        self.layout.addWidget(parametersCollapsibleButton)
+        singleParametersCollapsibleButton = ctk.ctkCollapsibleButton()
+        singleParametersCollapsibleButton.text = "Segmentation Set-up"
+        singleTabLayout.addRow(singleParametersCollapsibleButton)
 
         # Layout within the dummy collapsible button
-        parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-
+        singleParametersFormLayout = qt.QFormLayout(singleParametersCollapsibleButton)
+        
         #
         # Select base mesh
         #
-        # self.volumeSelector = slicer.qMRMLNodeComboBox()
-        # self.volumeSelector.nodeTypes = ( ("vtkMRMLModelNode"), "" )
-        # self.volumeSelector.selectNodeUponCreation = False
-        # self.volumeSelector.addEnabled = False
-        # self.volumeSelector.removeEnabled = False
-        # self.volumeSelector.noneEnabled = True
-        # self.volumeSelector.showHidden = False
-        # self.volumeSelector.setMRMLScene( slicer.mrmlScene )
-        # parametersFormLayout.addRow("Base mesh: ", self.volumeSelector)
+        self.volumeSelector = slicer.qMRMLNodeComboBox()
+        self.volumeSelector.nodeTypes = ( ("vtkMRMLVolumeNode"), "" )
+        self.volumeSelector.selectNodeUponCreation = False
+        self.volumeSelector.addEnabled = False
+        self.volumeSelector.removeEnabled = False
+        self.volumeSelector.noneEnabled = True
+        self.volumeSelector.showHidden = False
+        self.volumeSelector.setMRMLScene( slicer.mrmlScene )
+        singleParametersFormLayout.addRow("Volume: ", self.volumeSelector)
+
+        #
+        # Select model file
+        #
+        self.modelPathSingle = ctk.ctkPathLineEdit()
+        self.modelPathSingle.filters = ctk.ctkPathLineEdit.Files
+        self.modelPathSingle.nameFilters= ["Model (*.pth)"]
+        self.modelPathSingle.setToolTip("Select the segmentation model")
+        singleParametersFormLayout.addRow("Segmentation model: ", self.modelPathSingle)
+
+        #
+        # Apply Single Button
+        #
+        self.applySingleButton = qt.QPushButton("Apply")
+        self.applySingleButton.toolTip = "Generate MEMOS segmentation for loaded volume"
+        self.applySingleButton.enabled = False
+        singleParametersFormLayout.addRow(self.applySingleButton)
+        
+        #
+        # Evaluation Area
+        #
+        singleEvaluationCollapsibleButton = ctk.ctkCollapsibleButton()
+        singleEvaluationCollapsibleButton.text = "Evaluate Segmentation"
+        singleTabLayout.addRow(singleEvaluationCollapsibleButton)
+
+        # Layout within the dummy collapsible button
+        singleEvaluationFormLayout = qt.QFormLayout(singleEvaluationCollapsibleButton)
+        
+        #
+        # Select MEMOS segmentation
+        #
+        self.MEMOSSelector = slicer.qMRMLNodeComboBox()
+        self.MEMOSSelector.nodeTypes = ( ("vtkMRMLSegmentationNode"), "" )
+        self.MEMOSSelector.selectNodeUponCreation = False
+        self.MEMOSSelector.addEnabled = False
+        self.MEMOSSelector.removeEnabled = False
+        self.MEMOSSelector.noneEnabled = True
+        self.MEMOSSelector.showHidden = False
+        self.MEMOSSelector.setMRMLScene( slicer.mrmlScene )
+        singleEvaluationFormLayout.addRow("MEMOS segmentation: ", self.MEMOSSelector)
+        
+        #
+        # Select Reference segmentation
+        #
+        self.referenceSelector = slicer.qMRMLNodeComboBox()
+        self.referenceSelector.nodeTypes = ( ("vtkMRMLSegmentationNode"), "" )
+        self.referenceSelector.selectNodeUponCreation = False
+        self.referenceSelector.addEnabled = False
+        self.referenceSelector.removeEnabled = False
+        self.referenceSelector.noneEnabled = True
+        self.referenceSelector.showHidden = False
+        self.referenceSelector.setMRMLScene( slicer.mrmlScene )
+        singleEvaluationFormLayout.addRow("Reference segmentation: ", self.referenceSelector)
+
+        #
+        # Apply Single Button
+        #
+        self.evaluateSegmentationButton = qt.QPushButton("Compare Segmentations")
+        self.evaluateSegmentationButton.toolTip = "Compare MEMOS segmentation to a reference"
+        self.evaluateSegmentationButton.enabled = False
+        singleEvaluationFormLayout.addRow(self.evaluateSegmentationButton)
+        
+        # connections
+        self.volumeSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingle)
+        self.modelPathSingle.connect('currentPathChanged(const QString &)', self.onSelectSingle)
+        self.applySingleButton.connect('clicked(bool)', self.onApplySingleButton)
+        self.MEMOSSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingleEval)
+        self.referenceSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingleEval)
+        self.evaluateSegmentationButton.connect('clicked(bool)', self.onEvaluateSegmentationButton)
+
+        ################################### Batch Tab ###################################
+        # Instantiate and connect widgets
+        #
+        # Segmentation Set-up Area
+        #
+        parametersCollapsibleButton = ctk.ctkCollapsibleButton()
+        parametersCollapsibleButton.text = "Segmentation Set-up"
+        batchTabLayout.addRow(parametersCollapsibleButton)
+
+        # Layout within the dummy collapsible button
+        parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
         #
         # Select volume directory
@@ -119,17 +212,17 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         # Select model file
         #
         self.modelPath = ctk.ctkPathLineEdit()
-        self.modelPath.filters = ctk.ctkPathLineEdit.Dirs
-        # self.modelPath.nameFilters= ["Model (*.pth)"]
-        self.modelPath.setToolTip("Select the segmentation model directory")
-        parametersFormLayout.addRow("Model directory: ", self.modelPath)
+        self.modelPath.filters = ctk.ctkPathLineEdit.Files
+        self.modelPath.nameFilters= ["Model (*.pth)"]
+        self.modelPath.setToolTip("Select the segmentation model")
+        parametersFormLayout.addRow("Segmentation model: ", self.modelPath)
 
         #
         # Select volume directory
         #
         self.outputPath = ctk.ctkPathLineEdit()
         self.outputPath.filters = ctk.ctkPathLineEdit.Dirs
-        # self.outputPath.nameFilters= ["Volume (*.nrrd)"]
+        # self.outputPath.nameFilters= ["Volume (*.nii.gz)"]
         self.outputPath.setToolTip("Select the output directory")
         parametersFormLayout.addRow("Output directory: ", self.outputPath)
 
@@ -137,7 +230,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         # Apply Button
         #
         self.applyButton = qt.QPushButton("Apply")
-        self.applyButton.toolTip = "Generate MEMOSs."
+        self.applyButton.toolTip = "Generate MEMOS segmentation for each volume in directory."
         self.applyButton.enabled = False
         parametersFormLayout.addRow(self.applyButton)
 
@@ -150,15 +243,54 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         # Add vertical spacer
         self.layout.addStretch(1)
 
+    def onSelectSingle(self):
+        self.applySingleButton.enabled = bool(self.volumeSelector.currentNode() and self.modelPathSingle.currentPath)
+    
+    def onSelectSingleEval(self):
+        self.evaluateSegmentationButton.enabled = bool(self.MEMOSSelector.currentNode() and self.referenceSelector.currentNode())
+        
     def onSelect(self):
-        self.applyButton.enabled = bool(self.modelPath.currentPath and self.volumePath.currentPath
-                                        and self.outputPath.currentPath)
+        self.applyButton.enabled = bool(self.modelPath.currentPath and self.volumePath.currentPath and self.outputPath.currentPath)
 
     def onApplyButton(self):
         logic = MEMOSLogic()
         logic.run(self.volumePath.currentPath, self.modelPath.currentPath, self.outputPath.currentPath)
 
-
+    def onApplySingleButton(self):
+        tempVolumePath = os.path.join(slicer.app.temporaryPath, 'tempMEMOSVolume')
+        if os.path.isdir(tempVolumePath):
+          shutil.rmtree(tempVolumePath)
+        os.mkdir(tempVolumePath)
+        volumeNode = self.volumeSelector.currentNode()
+        tempVolumeFile = os.path.join(tempVolumePath, volumeNode.GetName() +'.nii.gz')
+        slicer.util.saveNode(volumeNode, tempVolumeFile)
+        tempOutputPath = os.path.join(slicer.app.temporaryPath,'tempMEMOSOut')
+        if os.path.isdir(tempOutputPath):  
+          shutil.rmtree(tempOutputPath)
+        os.mkdir(tempOutputPath)
+        logic = MEMOSLogic()
+        import time
+        start = time.time()
+        logic.run(tempVolumePath, self.modelPathSingle.currentPath, tempOutputPath)
+        end = time.time()
+        print("MEMOS Inference time: ", end - start)
+        if len(os.listdir(tempOutputPath))>0:
+          segmentationFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
+          segmentationNode = slicer.util.loadSegmentation(segmentationFile)
+          shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
+          volID = shNode.GetItemByDataNode(volumeNode)
+          segID = shNode.GetItemByDataNode(segmentationNode)
+          shNode.SetItemParent(segID,volID)       
+          self.MEMOSSelector.setCurrentNode(segmentationNode)
+        else: 
+          print("No segmentation was saved to the temporary folder")  
+        shutil.rmtree(tempVolumePath)
+        shutil.rmtree(tempOutputPath)
+    
+    def onEvaluateSegmentationButton(self):
+      logic = MEMOSLogic()
+      logic.getDiceTable(self.referenceSelector.currentNode(), self.MEMOSSelector.currentNode())
+      
 #
 # MEMOSLogic
 #
@@ -201,11 +333,8 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
           EnsureTyped,
           ScaleIntensityRanged,
           ToTensord
-)
-        # check configuration
-        print_config()
-
-        # define pre transforms
+        )
+        # define pre-transforms
         pre_transforms = Compose([
             LoadImaged(keys=["image"]),
             Spacingd(keys=["image"], pixdim=(
@@ -220,23 +349,28 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
             ToTensord(keys=["image"]),
         ])
 
-        # define dataset and dataloader
+        # get volumes
         images = sorted(glob(os.path.join(volumePath, "*.nii.gz")))
         files = [{"image": image} for image in images]
         print("files: ", files)
-        # dataset = Dataset(data=files, transform=pre_transforms)
-        # dataloader = DataLoader(dataset, batch_size=1, num_workers=0)
 
         # set up model
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        # set GPU
+        if torch.cuda.is_available():
+          os.environ["CUDA_VISIBLE_DEVICES"]="2" 
+          print("Using device: ", os.environ["CUDA_VISIBLE_DEVICES"])
+        # check configuration
+        print_config()
         torch.set_num_threads(24)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("Using device: ", device)
-
+        image_dim = 128
+   
         net = UNETR(
             in_channels=1,
             out_channels=51,
-            img_size=(96, 96, 96),
+            img_size=(image_dim, image_dim, image_dim),
             feature_size=16,
             hidden_size=768,
             mlp_dim=3072,
@@ -248,16 +382,16 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         ).to(device)
 
         if device.type == "cpu":
-            net.load_state_dict(torch.load(os.path.join(modelPath, "best_metric_model.pth"), map_location='cpu'))
+            net.load_state_dict(torch.load(modelPath, map_location='cpu'))
         else:
-            net.load_state_dict(torch.load(os.path.join(modelPath, "best_metric_model.pth")))
+            net.load_state_dict(torch.load(modelPath))
         net.eval()
 
         with torch.no_grad():
           for filepath in files:
             image = pre_transforms(filepath)['image'].to(device)
             output_raw = sliding_window_inference(
-              image, (96, 96, 96), 4, net, overlap=0.8)
+              image, (image_dim, image_dim, image_dim), 4, net, overlap=0.8)
             output_formatted = torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
             outputFile = os.path.basename(filepath.get("image").split('.')[0]) + "_seg.nii.gz"
             print("Writing: ", outputFile)
@@ -266,7 +400,50 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
               file_name=os.path.join(outputPath, outputFile)
               )
 
-
+    def getDiceTable(self, refSeg, predictedSeg):
+      pnode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentComparisonNode")
+      pnode.SetAndObserveReferenceSegmentationNode(refSeg)
+      pnode.SetAndObserveCompareSegmentationNode(predictedSeg)
+      dtab = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode")
+      fullTable = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode")
+      fullTable.SetName(refSeg.GetName())
+      fullTable.SetUseFirstColumnAsRowHeader(False)
+      header = fullTable.AddColumn()
+      header.SetName("Metric name")
+      header.InsertNextValue("Reference segmentation")
+      header.InsertNextValue("Reference segment")
+      header.InsertNextValue("Compare segmentation")
+      header.InsertNextValue("Compare segment")
+      header.InsertNextValue("Dice coefficient")
+      header.InsertNextValue("True positives (%)")
+      header.InsertNextValue("True negatives (%)")
+      header.InsertNextValue("False positives (%)")
+      header.InsertNextValue("False negatives (%)")
+      header.InsertNextValue("Reference center")
+      header.InsertNextValue("Compare center")
+      header.InsertNextValue("Reference volume (cc)")
+      header.InsertNextValue("Compare volume (cc)")
+      fullTable.Modified()
+      for index in range(0,refSeg.GetSegmentation().GetNumberOfSegments()):
+        pnode.SetAndObserveDiceTableNode(dtab)
+        pnode.SetReferenceSegmentID(refSeg.GetSegmentation().GetNthSegmentID(index))
+        pnode.SetCompareSegmentID(predictedSeg.GetSegmentation().GetNthSegmentID(index))
+        success = slicer.modules.segmentcomparison.logic().ComputeDiceStatistics(pnode)
+        col = dtab.GetTable().GetColumn(1)
+        col.SetName(predictedSeg.GetSegmentation().GetNthSegmentID(index+1))
+        fullTable.AddColumn(col)
+      flipper = vtk.vtkTransposeTable()
+      flipper.SetInputData(fullTable.GetTable())
+      flipper.Update()
+      fullTable.SetAndObserveTable(flipper.GetOutput())
+      fullTable.RemoveColumn(0)
+      fullTable.RemoveColumn(0)
+      fullTable.RemoveColumn(0)
+      fullTable.RemoveColumn(0)
+      fullTable.SetUseFirstColumnAsRowHeader(True)
+      fullTable.SetUseColumnNameAsColumnHeader(True)
+      slicer.mrmlScene.RemoveNode(dtab)
+      
 class MEMOSTest(ScriptedLoadableModuleTest):
     """
       This is the test case for your scripted module.
@@ -314,3 +491,5 @@ class MEMOSTest(ScriptedLoadableModuleTest):
         logic = MEMOSLogic()
         self.assertIsNotNone(logic.hasImageData(volumeNode))
         self.delayDisplay('Test passed!')
+
+

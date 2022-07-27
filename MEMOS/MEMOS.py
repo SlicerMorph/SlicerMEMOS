@@ -9,7 +9,6 @@ import logging
 import os
 import sys
 import tempfile
-import shutil
 from glob import glob
 
 #
@@ -17,6 +16,27 @@ from glob import glob
 #
 class MEMOS(ScriptedLoadableModule):
     """Uses ScriptedLoadableModule base class, available at:
+      https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+      """
+
+    def __init__(self, parent):
+        ScriptedLoadableModule.__init__(self, parent)
+        self.parent.title = "MEMOS"  # TODO make this more human readable by adding spaces
+        self.parent.categories = ["SlicerMorph.SlicerMorph Utilities"]
+        self.parent.dependencies = []
+        self.parent.contributors = [
+            "Sara Rolfe (UW), Murat Maga (UW)"]  # replace with "Firstname Lastname (Organization)"
+        self.parent.helpText = """
+      This model loads a PyTorch Deep Learning model and does inference on an image loaded in the scene.
+      """
+        self.parent.acknowledgementText = """
+      This module was developed by Sara Rolfe for SlicerMorph. SlicerMorph was originally supported by an NSF/DBI grant, "An Integrated Platform for Retrieval, Visualization and Analysis of 3D Morphology From Digital Biological Collections" 
+      awarded to Murat Maga (1759883), Adam Summers (1759637), and Douglas Boyer (1759839). 
+      https://nsf.gov/awardsearch/showAward?AWD_ID=1759883&HistoricalAwards=false
+      """  # replace with organization, grant and thanks.
+
+class MEMOSWidget(ScriptedLoadableModuleWidget):
+    """Uses ScriptedLoadableModuleWidget base class, available at:
       https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
       """
     def installLibs(self):
@@ -28,7 +48,7 @@ class MEMOS(ScriptedLoadableModule):
         if version.parse(monai.__version__) != version.parse(monaiVersion):
           slicer.util.pip_uninstall('monai')
           needRestart=1
-          if not slicer.util.confirmOkCancelDisplay(f"MEMOS requires installation of MONAI (version {monaiVersion}).\nClick OK to install this version and restart Slicer."):
+          if not slicer.util.confirmOkCancelDisplay(f"MEMO requires installation of MONAI (version {monaiVersion}).\nClick OK to install this version and restart Slicer."):
             self.showBrowserOnEnter = False
             return
           slicer.util.pip_install('monai=='+ monaiVersion)
@@ -59,98 +79,32 @@ class MEMOS(ScriptedLoadableModule):
           print("OS not recognized: Dependencies will not be installed")
       if needRestart:
         slicer.util.restart()
-
-    def __init__(self, parent):
-        ScriptedLoadableModule.__init__(self, parent)
-        self.installLibs()
-        self.parent.title = "MEMOS"  # TODO make this more human readable by adding spaces
-        self.parent.categories = ["SlicerMorph.SlicerMorph Utilities"]
-        self.parent.dependencies = []
-        self.parent.contributors = [
-            "Sara Rolfe (UW), Murat Maga (UW)"]  # replace with "Firstname Lastname (Organization)"
-        self.parent.helpText = """
-      This model loads a PyTorch Deep Learning model and does inference on an image loaded in the scene.
-      """
-        self.parent.acknowledgementText = """
-      This module was developed by Sara Rolfe for SlicerMorph. SlicerMorph was originally supported by an NSF/DBI grant, "An Integrated Platform for Retrieval, Visualization and Analysis of 3D Morphology From Digital Biological Collections" 
-      awarded to Murat Maga (1759883), Adam Summers (1759637), and Douglas Boyer (1759839). 
-      https://nsf.gov/awardsearch/showAward?AWD_ID=1759883&HistoricalAwards=false
-      """  # replace with organization, grant and thanks.
-
-class MEMOSWidget(ScriptedLoadableModuleWidget):
-    """Uses ScriptedLoadableModuleWidget base class, available at:
-      https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-      """
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
-        # Set up tabs to split workflow
-        tabsWidget = qt.QTabWidget()
-        singleTab = qt.QWidget()
-        singleTabLayout = qt.QFormLayout(singleTab)
-        batchTab = qt.QWidget()
-        batchTabLayout = qt.QFormLayout(batchTab)
-        tabsWidget.addTab(singleTab, "Single volume")
-        tabsWidget.addTab(batchTab, "Batch mode")
-        self.layout.addWidget(tabsWidget)
-
-        ################################### Single Tab ###################################
-        # Instantiate and connect widgets
-        #
-        # Parameters Area
-        #
-        singleParametersCollapsibleButton = ctk.ctkCollapsibleButton()
-        singleParametersCollapsibleButton.text = "Parameters"
-        singleTabLayout.addRow(singleParametersCollapsibleButton)
-
-        # Layout within the dummy collapsible button
-        singleParametersFormLayout = qt.QFormLayout(singleParametersCollapsibleButton)
-        
-        #
-        # Select base mesh
-        #
-        self.volumeSelector = slicer.qMRMLNodeComboBox()
-        self.volumeSelector.nodeTypes = ( ("vtkMRMLVolumeNode"), "" )
-        self.volumeSelector.selectNodeUponCreation = False
-        self.volumeSelector.addEnabled = False
-        self.volumeSelector.removeEnabled = False
-        self.volumeSelector.noneEnabled = True
-        self.volumeSelector.showHidden = False
-        self.volumeSelector.setMRMLScene( slicer.mrmlScene )
-        singleParametersFormLayout.addRow("Volume: ", self.volumeSelector)
-
-        #
-        # Select model file
-        #
-        self.modelPathSingle = ctk.ctkPathLineEdit()
-        self.modelPathSingle.filters = ctk.ctkPathLineEdit.Files
-        self.modelPathSingle.nameFilters= ["Model (*.pth)"]
-        self.modelPathSingle.setToolTip("Select the segmentation model")
-        singleParametersFormLayout.addRow("Segmentation model: ", self.modelPathSingle)
-
-        #
-        # Apply Single Button
-        #
-        self.applySingleButton = qt.QPushButton("Apply")
-        self.applySingleButton.toolTip = "Generate MEMOS segmentation for loaded volume"
-        self.applySingleButton.enabled = False
-        singleParametersFormLayout.addRow(self.applySingleButton)
-
-        # connections
-        self.volumeSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingle)
-        self.modelPathSingle.connect('currentPathChanged(const QString &)', self.onSelectSingle)
-        self.applySingleButton.connect('clicked(bool)', self.onApplySingleButton)
-
-        ################################### Batch Tab ###################################
+        self.installLibs()
         # Instantiate and connect widgets
         #
         # Parameters Area
         #
         parametersCollapsibleButton = ctk.ctkCollapsibleButton()
         parametersCollapsibleButton.text = "Parameters"
-        batchTabLayout.addRow(parametersCollapsibleButton)
+        self.layout.addWidget(parametersCollapsibleButton)
 
         # Layout within the dummy collapsible button
         parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
+
+        #
+        # Select base mesh
+        #
+        # self.volumeSelector = slicer.qMRMLNodeComboBox()
+        # self.volumeSelector.nodeTypes = ( ("vtkMRMLModelNode"), "" )
+        # self.volumeSelector.selectNodeUponCreation = False
+        # self.volumeSelector.addEnabled = False
+        # self.volumeSelector.removeEnabled = False
+        # self.volumeSelector.noneEnabled = True
+        # self.volumeSelector.showHidden = False
+        # self.volumeSelector.setMRMLScene( slicer.mrmlScene )
+        # parametersFormLayout.addRow("Base mesh: ", self.volumeSelector)
 
         #
         # Select volume directory
@@ -165,17 +119,17 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         # Select model file
         #
         self.modelPath = ctk.ctkPathLineEdit()
-        self.modelPath.filters = ctk.ctkPathLineEdit.Files
-        self.modelPath.nameFilters= ["Model (*.pth)"]
-        self.modelPath.setToolTip("Select the segmentation model")
-        parametersFormLayout.addRow("Segmentation model: ", self.modelPath)
+        self.modelPath.filters = ctk.ctkPathLineEdit.Dirs
+        # self.modelPath.nameFilters= ["Model (*.pth)"]
+        self.modelPath.setToolTip("Select the segmentation model directory")
+        parametersFormLayout.addRow("Model directory: ", self.modelPath)
 
         #
         # Select volume directory
         #
         self.outputPath = ctk.ctkPathLineEdit()
         self.outputPath.filters = ctk.ctkPathLineEdit.Dirs
-        # self.outputPath.nameFilters= ["Volume (*.nii.gz)"]
+        # self.outputPath.nameFilters= ["Volume (*.nrrd)"]
         self.outputPath.setToolTip("Select the output directory")
         parametersFormLayout.addRow("Output directory: ", self.outputPath)
 
@@ -183,7 +137,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         # Apply Button
         #
         self.applyButton = qt.QPushButton("Apply")
-        self.applyButton.toolTip = "Generate MEMOS segmentation for each volume in directory."
+        self.applyButton.toolTip = "Generate MEMOSs."
         self.applyButton.enabled = False
         parametersFormLayout.addRow(self.applyButton)
 
@@ -196,41 +150,14 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         # Add vertical spacer
         self.layout.addStretch(1)
 
-    def onSelectSingle(self):
-        self.applySingleButton.enabled = bool(self.volumeSelector.currentNode() and self.modelPathSingle.currentPath)
-        
     def onSelect(self):
-        self.applyButton.enabled = bool(self.modelPath.currentPath and self.volumePath.currentPath and self.outputPath.currentPath)
+        self.applyButton.enabled = bool(self.modelPath.currentPath and self.volumePath.currentPath
+                                        and self.outputPath.currentPath)
 
     def onApplyButton(self):
         logic = MEMOSLogic()
         logic.run(self.volumePath.currentPath, self.modelPath.currentPath, self.outputPath.currentPath)
 
-    def onApplySingleButton(self):
-        tempVolumePath = os.path.join(slicer.app.temporaryPath, 'tempMEMOSVolume')
-        if os.path.isdir(tempVolumePath):
-          shutil.rmtree(tempVolumePath)
-        os.mkdir(tempVolumePath)
-        volumeNode = self.volumeSelector.currentNode()
-        tempVolumeFile = os.path.join(tempVolumePath, volumeNode.GetName() +'.nii.gz')
-        slicer.util.saveNode(volumeNode, tempVolumeFile)
-        tempOutputPath = os.path.join(slicer.app.temporaryPath,'tempMEMOSOut')
-        if os.path.isdir(tempOutputPath):  
-          shutil.rmtree(tempOutputPath)
-        os.mkdir(tempOutputPath)
-        logic = MEMOSLogic()
-        logic.run(tempVolumePath, self.modelPathSingle.currentPath, tempOutputPath)
-        if len(os.listdir(tempOutputPath))>0:
-          segmentationFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
-        else: 
-          print("No segmentation found")
-        segmentationNode = slicer.util.loadSegmentation(segmentationFile)
-        shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
-        volID = shNode.GetItemByDataNode(volumeNode)
-        segID = shNode.GetItemByDataNode(segmentationNode)
-        shNode.SetItemParent(segID,volID)
-        shutil.rmtree(tempVolumePath)
-        shutil.rmtree(tempOutputPath)
 
 #
 # MEMOSLogic
@@ -321,9 +248,9 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         ).to(device)
 
         if device.type == "cpu":
-            net.load_state_dict(torch.load(modelPath, map_location='cpu'))
+            net.load_state_dict(torch.load(os.path.join(modelPath, "best_metric_model.pth"), map_location='cpu'))
         else:
-            net.load_state_dict(torch.load(modelPath))
+            net.load_state_dict(torch.load(os.path.join(modelPath, "best_metric_model.pth")))
         net.eval()
 
         with torch.no_grad():
@@ -387,5 +314,3 @@ class MEMOSTest(ScriptedLoadableModuleTest):
         logic = MEMOSLogic()
         self.assertIsNotNone(logic.hasImageData(volumeNode))
         self.delayDisplay('Test passed!')
-
-

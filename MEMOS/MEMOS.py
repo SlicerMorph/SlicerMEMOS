@@ -92,7 +92,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         tabsWidget.addTab(singleTab, "Single volume")
         tabsWidget.addTab(batchTab, "Batch mode")
         self.layout.addWidget(tabsWidget)
-
+        
         ################################### Single Tab ###################################
         # Instantiate and connect widgets
         #
@@ -222,7 +222,6 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         #
         self.outputPath = ctk.ctkPathLineEdit()
         self.outputPath.filters = ctk.ctkPathLineEdit.Dirs
-        # self.outputPath.nameFilters= ["Volume (*.nii.gz)"]
         self.outputPath.setToolTip("Select the output directory")
         parametersFormLayout.addRow("Output directory: ", self.outputPath)
 
@@ -253,10 +252,13 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.applyButton.enabled = bool(self.modelPath.currentPath and self.volumePath.currentPath and self.outputPath.currentPath)
 
     def onApplyButton(self):
+        self.setColorTable()
         logic = MEMOSLogic()
-        logic.run(self.volumePath.currentPath, self.modelPath.currentPath, self.outputPath.currentPath)
+        logic.runBatch(self.volumePath.currentPath, self.modelPath.currentPath, self.outputPath.currentPath, self.colorNode)
+
 
     def onApplySingleButton(self):
+        self.setColorTable()
         tempVolumePath = os.path.join(slicer.app.temporaryPath, 'tempMEMOSVolume')
         if os.path.isdir(tempVolumePath):
           shutil.rmtree(tempVolumePath)
@@ -271,12 +273,12 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         logic = MEMOSLogic()
         import time
         start = time.time()
-        logic.run(tempVolumePath, self.modelPathSingle.currentPath, tempOutputPath)
+        logic.runSingle(tempVolumeFile, self.modelPathSingle.currentPath, tempOutputPath)
         end = time.time()
         print("MEMOS Inference time: ", end - start)
         if len(os.listdir(tempOutputPath))>0:
           segmentationFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
-          segmentationNode = slicer.util.loadSegmentation(segmentationFile)
+          segmentationNode = slicer.modules.segmentations.logic().LoadSegmentationFromFile(segmentationFile,True,volumeNode.GetName(), self.colorNode)
           shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
           volID = shNode.GetItemByDataNode(volumeNode)
           segID = shNode.GetItemByDataNode(segmentationNode)
@@ -290,6 +292,23 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
     def onEvaluateSegmentationButton(self):
       logic = MEMOSLogic()
       logic.getDiceTable(self.referenceSelector.currentNode(), self.MEMOSSelector.currentNode())
+      
+    def setColorTable(self):
+      if hasattr(self, 'colorNode'):
+        try:
+          slicer.util.getNode(self.colorNode)
+          return 
+        except:
+          print("Color node is not in the scene, reloading from file")
+          self.colorNode = None 
+      # Load color table
+      colorNodePath = self.resourcePath("Support/KOMP2.ctbl")
+      try:
+        self.colorNode = slicer.util.loadColorTable(colorNodePath)
+      except:
+        print("Error loading color node from: ", colorNodePath)
+        self.colorNode = None 
+
       
 #
 # MEMOSLogic
@@ -305,7 +324,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
       """
 
-    def run(self, volumePath, modelPath, outputPath):
+    def runSingle(self, imagePath, modelPath, outputPath):
         # import MONAI and dependencies 
         import nibabel as nib
         import numpy as np
@@ -349,13 +368,115 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
             ToTensord(keys=["image"]),
         ])
 
-        # get volumes
-        images = sorted(glob(os.path.join(volumePath, "*.nii.gz")))
-        files = [{"image": image} for image in images]
-        print("files: ", files)
+        # get volume 
+        filepath = {"image": imagePath}
 
         # set up model
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        
+        # set GPU
+        if torch.cuda.is_available():
+          os.environ["CUDA_VISIBLE_DEVICES"]="2" 
+          print("Using device: ", os.environ["CUDA_VISIBLE_DEVICES"])
+        # check configuration
+        print_config()
+        torch.set_num_threads(24)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print("Using device: ", device)
+        image_dim = 128
+   
+        net = UNETR(
+            in_channels=1,
+            out_channels=51,
+            img_size=(image_dim, image_dim, image_dim),
+            feature_size=16,
+            hidden_size=768,
+            mlp_dim=3072,
+            num_heads=12,
+            pos_embed="perceptron",
+            norm_name="instance",
+            res_block=True,
+            dropout_rate=0.0,
+        ).to(device)
+
+        if device.type == "cpu":
+            net.load_state_dict(torch.load(modelPath, map_location='cpu'))
+        else:
+            net.load_state_dict(torch.load(modelPath))
+        net.eval()
+
+        with torch.no_grad():
+          image = pre_transforms(filepath)['image'].to(device)
+          output_raw = sliding_window_inference(
+            image, (image_dim, image_dim, image_dim), 4, net, overlap=0.8)
+          output_formatted = torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
+          outputFile = os.path.basename(filepath.get("image").split('.')[0]) + "_seg.nii.gz"
+          print("Writing: ", outputFile)
+          write_nifti(
+            data=output_formatted,
+            file_name=os.path.join(outputPath, outputFile)
+              )
+    
+    def runBatch(self, volumePath, modelPath, outputPath, colorNode):
+        # import MONAI and dependencies 
+        import nibabel as nib
+        import numpy as np
+        import torch
+        import einops
+
+        from monai.config import print_config
+        from monai.data import Dataset, DataLoader, create_test_image_3d, decollate_batch
+        from monai.inferers import sliding_window_inference
+        from monai.networks.nets import UNETR
+        from monai.data.nifti_writer import write_nifti
+        
+        from monai.transforms import (
+          Activationsd,
+          AsDiscreted,
+          AddChanneld,
+          Compose,
+          EnsureChannelFirstd,
+          Invertd,
+          LoadImaged,
+          Orientationd,
+          SaveImaged,
+          Spacingd,
+          CropForegroundd,
+          EnsureTyped,
+          ScaleIntensityRanged,
+          ToTensord
+        )
+        # define pre-transforms
+        pre_transforms = Compose([
+            LoadImaged(keys=["image"]),
+            Spacingd(keys=["image"], pixdim=(
+                1, 1, 1), mode="bilinear"),
+            EnsureChannelFirstd(keys=["image"]),
+            Orientationd(keys="image", axcodes="RAS"),
+            ScaleIntensityRanged(
+                keys=["image"], a_min=-175, a_max=250,
+                b_min=0.0, b_max=1.0, clip=True),
+            CropForegroundd(keys=["image"], source_key="image"),
+            AddChanneld(keys=["image"]),
+            ToTensord(keys=["image"]),
+        ])
+
+        # get volumes in directory
+        images = []
+        volumeExtensions = ['nrrd', 'nii.gz']
+        for root, dirnames, imageNames in os.walk(volumePath):
+          for imageName in imageNames:
+            print(imageNames)
+            imName, imExt = imageName.split(os.extsep,1)
+            print(imExt)
+            if any( ext in imExt for ext in volumeExtensions):
+              images.append(os.path.join(root, imageName))
+        files = [{"image": image} for image in images]
+        
+
+        # set up model
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        
         # set GPU
         if torch.cuda.is_available():
           os.environ["CUDA_VISIBLE_DEVICES"]="2" 
@@ -393,13 +514,18 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
             output_raw = sliding_window_inference(
               image, (image_dim, image_dim, image_dim), 4, net, overlap=0.8)
             output_formatted = torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
-            outputFile = os.path.basename(filepath.get("image").split('.')[0]) + "_seg.nii.gz"
-            print("Writing: ", outputFile)
+            outputName = os.path.basename(filepath.get("image").split('.')[0])
+            outputLabelPath = os.path.join(outputPath, outputName + "_seg.nii.gz")
+            outputSegPath = os.path.join(outputPath, outputName + ".seg.nrrd")
+            print("Writing: ", outputLabelPath)
             write_nifti(
               data=output_formatted,
-              file_name=os.path.join(outputPath, outputFile)
+              file_name=outputLabelPath
               )
-
+            segmentationNode = slicer.modules.segmentations.logic().LoadSegmentationFromFile(outputLabelPath, True, outputName, colorNode)
+            slicer.util.saveNode(segmentationNode, outputSegPath)
+            os.remove(outputLabelPath)
+              
     def getDiceTable(self, refSeg, predictedSeg):
       pnode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentComparisonNode")
       pnode.SetAndObserveReferenceSegmentationNode(refSeg)

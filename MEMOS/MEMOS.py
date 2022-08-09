@@ -11,6 +11,7 @@ import sys
 import tempfile
 import shutil
 from glob import glob
+from packaging import version
 
 #
 # MEMOS
@@ -31,9 +32,9 @@ class MEMOS(ScriptedLoadableModule):
           if not slicer.util.confirmOkCancelDisplay(f"MEMOS requires installation of MONAI (version {monaiVersion}).\nClick OK to install this version and restart Slicer."):
             self.showBrowserOnEnter = False
             return
-          slicer.util.pip_install('monai=='+ monaiVersion)
+          slicer.util.pip_install('monai[itk, pynrrd]=='+ monaiVersion)
       except:
-        slicer.util.pip_install('monai=='+ monaiVersion)
+        slicer.util.pip_install('monai[itk, pynrrd]=='+ monaiVersion)
       try:
         import pillow
       except:
@@ -83,6 +84,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
       """
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
+        
         # Set up tabs to split workflow
         tabsWidget = qt.QTabWidget()
         singleTab = qt.QWidget()
@@ -264,6 +266,9 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
           shutil.rmtree(tempVolumePath)
         os.mkdir(tempVolumePath)
         volumeNode = self.volumeSelector.currentNode()
+        originalSpacing = volumeNode.GetSpacing()
+        if originalSpacing != (1,1,1):
+           volumeNode.SetSpacing((1,1,1)) 
         tempVolumeFile = os.path.join(tempVolumePath, volumeNode.GetName() +'.nii.gz')
         slicer.util.saveNode(volumeNode, tempVolumeFile)
         tempOutputPath = os.path.join(slicer.app.temporaryPath,'tempMEMOSOut')
@@ -277,8 +282,15 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         end = time.time()
         print("MEMOS Inference time: ", end - start)
         if len(os.listdir(tempOutputPath))>0:
-          segmentationFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
-          segmentationNode = slicer.modules.segmentations.logic().LoadSegmentationFromFile(segmentationFile,True,volumeNode.GetName(), self.colorNode)
+          labelFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
+          labelNode = slicer.util.loadLabelVolume(labelFile)
+          labelNode.GetDisplayNode().SetAndObserveColorNodeID(self.colorNode.GetID())
+          if originalSpacing != (1,1,1):
+            volumeNode.SetSpacing(originalSpacing)
+            labelNode.SetSpacing(originalSpacing)
+          segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
+          slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(labelNode, segmentationNode)
+          segmentationNode.CreateClosedSurfaceRepresentation()
           shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
           volID = shNode.GetItemByDataNode(volumeNode)
           segID = shNode.GetItemByDataNode(segmentationNode)
@@ -286,6 +298,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
           self.MEMOSSelector.setCurrentNode(segmentationNode)
         else: 
           print("No segmentation was saved to the temporary folder")  
+        slicer.mrmlScene.RemoveNode(labelNode)
         shutil.rmtree(tempVolumePath)
         shutil.rmtree(tempOutputPath)
     
@@ -356,8 +369,6 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         # define pre-transforms
         pre_transforms = Compose([
             LoadImaged(keys=["image"]),
-            Spacingd(keys=["image"], pixdim=(
-                1, 1, 1), mode="bilinear"),
             EnsureChannelFirstd(keys=["image"]),
             Orientationd(keys="image", axcodes="RAS"),
             ScaleIntensityRanged(
@@ -367,7 +378,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
             AddChanneld(keys=["image"]),
             ToTensord(keys=["image"]),
         ])
-
+        
         # get volume 
         filepath = {"image": imagePath}
 
@@ -449,18 +460,24 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         # define pre-transforms
         pre_transforms = Compose([
             LoadImaged(keys=["image"]),
-            Spacingd(keys=["image"], pixdim=(
-                1, 1, 1), mode="bilinear"),
             EnsureChannelFirstd(keys=["image"]),
             Orientationd(keys="image", axcodes="RAS"),
             ScaleIntensityRanged(
                 keys=["image"], a_min=-175, a_max=250,
                 b_min=0.0, b_max=1.0, clip=True),
-            CropForegroundd(keys=["image"], source_key="image"),
             AddChanneld(keys=["image"]),
             ToTensord(keys=["image"]),
         ])
-
+        # define post-transforms
+        post_transforms = Compose([
+            Invertd(
+            keys=["pred"],
+            transform=pre_transforms,
+            orig_keys=["image"],  
+            nearest_interp=False,
+            to_tensor=True,
+     ),
+])
         # get volumes in directory
         images = []
         volumeExtensions = ['nrrd', 'nii.gz']
@@ -472,7 +489,6 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
             if any( ext in imExt for ext in volumeExtensions):
               images.append(os.path.join(root, imageName))
         files = [{"image": image} for image in images]
-        
 
         # set up model
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -511,19 +527,26 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         with torch.no_grad():
           for filepath in files:
             image = pre_transforms(filepath)['image'].to(device)
-            output_raw = sliding_window_inference(
-              image, (image_dim, image_dim, image_dim), 4, net, overlap=0.8)
-            output_formatted = torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
+            output_raw = sliding_window_inference(image, (image_dim, image_dim, image_dim), 4, net, overlap=0.8)
+            filepath["pred"]= torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
+            output_final = post_transforms(filepath)['pred'].to(device)
             outputName = os.path.basename(filepath.get("image").split('.')[0])
             outputLabelPath = os.path.join(outputPath, outputName + "_seg.nii.gz")
             outputSegPath = os.path.join(outputPath, outputName + ".seg.nrrd")
             print("Writing: ", outputLabelPath)
             write_nifti(
-              data=output_formatted,
+              data=output_final,
               file_name=outputLabelPath
               )
-            segmentationNode = slicer.modules.segmentations.logic().LoadSegmentationFromFile(outputLabelPath, True, outputName, colorNode)
+            labelNode = slicer.util.loadLabelVolume(outputLabelPath)
+            labelNode.GetDisplayNode().SetAndObserveColorNodeID(colorNode.GetID())
+            #if originalSpacing != (1,1,1):
+              #labelNode.SetSpacing(originalSpacing)
+            segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
+            slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(labelNode, segmentationNode)
             slicer.util.saveNode(segmentationNode, outputSegPath)
+            slicer.mrmlScene.RemoveNode(labelNode)
+            slicer.mrmlScene.RemoveNode(segmentationNode)
             os.remove(outputLabelPath)
               
     def getDiceTable(self, refSeg, predictedSeg):

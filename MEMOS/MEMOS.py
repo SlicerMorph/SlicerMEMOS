@@ -142,10 +142,10 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         #
         singleEvaluationCollapsibleButton = ctk.ctkCollapsibleButton()
         singleEvaluationCollapsibleButton.text = "Evaluate Segmentation"
-        singleTabLayout.addRow(singleEvaluationCollapsibleButton)
+        #singleTabLayout.addRow(singleEvaluationCollapsibleButton)
 
         # Layout within the dummy collapsible button
-        singleEvaluationFormLayout = qt.QFormLayout(singleEvaluationCollapsibleButton)
+        #singleEvaluationFormLayout = qt.QFormLayout(singleEvaluationCollapsibleButton)
         
         #
         # Select MEMOS segmentation
@@ -158,7 +158,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.MEMOSSelector.noneEnabled = True
         self.MEMOSSelector.showHidden = False
         self.MEMOSSelector.setMRMLScene( slicer.mrmlScene )
-        singleEvaluationFormLayout.addRow("MEMOS segmentation: ", self.MEMOSSelector)
+        #singleEvaluationFormLayout.addRow("MEMOS segmentation: ", self.MEMOSSelector)
         
         #
         # Select Reference segmentation
@@ -171,15 +171,15 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.referenceSelector.noneEnabled = True
         self.referenceSelector.showHidden = False
         self.referenceSelector.setMRMLScene( slicer.mrmlScene )
-        singleEvaluationFormLayout.addRow("Reference segmentation: ", self.referenceSelector)
+        #singleEvaluationFormLayout.addRow("Reference segmentation: ", self.referenceSelector)
 
         #
-        # Apply Single Button
+        # Apply Evaluation Button
         #
         self.evaluateSegmentationButton = qt.QPushButton("Compare Segmentations")
         self.evaluateSegmentationButton.toolTip = "Compare MEMOS segmentation to a reference"
         self.evaluateSegmentationButton.enabled = False
-        singleEvaluationFormLayout.addRow(self.evaluateSegmentationButton)
+        #singleEvaluationFormLayout.addRow(self.evaluateSegmentationButton)
         
         # connections
         self.volumeSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingle)
@@ -187,7 +187,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.applySingleButton.connect('clicked(bool)', self.onApplySingleButton)
         self.MEMOSSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingleEval)
         self.referenceSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingleEval)
-        self.evaluateSegmentationButton.connect('clicked(bool)', self.onEvaluateSegmentationButton)
+        #self.evaluateSegmentationButton.connect('clicked(bool)', self.onEvaluateSegmentationButton)
 
         ################################### Batch Tab ###################################
         # Instantiate and connect widgets
@@ -302,9 +302,9 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         shutil.rmtree(tempVolumePath)
         shutil.rmtree(tempOutputPath)
     
-    def onEvaluateSegmentationButton(self):
-      logic = MEMOSLogic()
-      logic.getDiceTable(self.referenceSelector.currentNode(), self.MEMOSSelector.currentNode())
+#    def onEvaluateSegmentationButton(self):
+#      logic = MEMOSLogic()
+#      logic.getDiceTable(self.referenceSelector.currentNode(), self.MEMOSSelector.currentNode())
       
     def setColorTable(self):
       if hasattr(self, 'colorNode'):
@@ -387,7 +387,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         
         # set GPU
         if torch.cuda.is_available():
-          os.environ["CUDA_VISIBLE_DEVICES"]="2" 
+          os.environ["CUDA_VISIBLE_DEVICES"]="0" 
           print("Using device: ", os.environ["CUDA_VISIBLE_DEVICES"])
         # check configuration
         print_config()
@@ -395,7 +395,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("Using device: ", device)
         image_dim = 128
-   
+
         net = UNETR(
             in_channels=1,
             out_channels=51,
@@ -495,7 +495,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         
         # set GPU
         if torch.cuda.is_available():
-          os.environ["CUDA_VISIBLE_DEVICES"]="2" 
+          os.environ["CUDA_VISIBLE_DEVICES"]="0" 
           print("Using device: ", os.environ["CUDA_VISIBLE_DEVICES"])
         # check configuration
         print_config()
@@ -549,49 +549,49 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
             slicer.mrmlScene.RemoveNode(segmentationNode)
             os.remove(outputLabelPath)
               
-    def getDiceTable(self, refSeg, predictedSeg):
-      pnode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentComparisonNode")
-      pnode.SetAndObserveReferenceSegmentationNode(refSeg)
-      pnode.SetAndObserveCompareSegmentationNode(predictedSeg)
-      dtab = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode")
-      fullTable = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode")
-      fullTable.SetName(refSeg.GetName())
-      fullTable.SetUseFirstColumnAsRowHeader(False)
-      header = fullTable.AddColumn()
-      header.SetName("Metric name")
-      header.InsertNextValue("Reference segmentation")
-      header.InsertNextValue("Reference segment")
-      header.InsertNextValue("Compare segmentation")
-      header.InsertNextValue("Compare segment")
-      header.InsertNextValue("Dice coefficient")
-      header.InsertNextValue("True positives (%)")
-      header.InsertNextValue("True negatives (%)")
-      header.InsertNextValue("False positives (%)")
-      header.InsertNextValue("False negatives (%)")
-      header.InsertNextValue("Reference center")
-      header.InsertNextValue("Compare center")
-      header.InsertNextValue("Reference volume (cc)")
-      header.InsertNextValue("Compare volume (cc)")
-      fullTable.Modified()
-      for index in range(0,refSeg.GetSegmentation().GetNumberOfSegments()):
-        pnode.SetAndObserveDiceTableNode(dtab)
-        pnode.SetReferenceSegmentID(refSeg.GetSegmentation().GetNthSegmentID(index))
-        pnode.SetCompareSegmentID(predictedSeg.GetSegmentation().GetNthSegmentID(index))
-        success = slicer.modules.segmentcomparison.logic().ComputeDiceStatistics(pnode)
-        col = dtab.GetTable().GetColumn(1)
-        col.SetName(predictedSeg.GetSegmentation().GetNthSegmentID(index+1))
-        fullTable.AddColumn(col)
-      flipper = vtk.vtkTransposeTable()
-      flipper.SetInputData(fullTable.GetTable())
-      flipper.Update()
-      fullTable.SetAndObserveTable(flipper.GetOutput())
-      fullTable.RemoveColumn(0)
-      fullTable.RemoveColumn(0)
-      fullTable.RemoveColumn(0)
-      fullTable.RemoveColumn(0)
-      fullTable.SetUseFirstColumnAsRowHeader(True)
-      fullTable.SetUseColumnNameAsColumnHeader(True)
-      slicer.mrmlScene.RemoveNode(dtab)
+#    def getDiceTable(self, refSeg, predictedSeg):
+#      pnode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentComparisonNode")
+#      pnode.SetAndObserveReferenceSegmentationNode(refSeg)
+#      pnode.SetAndObserveCompareSegmentationNode(predictedSeg)
+#      dtab = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode")
+#      fullTable = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode")
+#      fullTable.SetName(refSeg.GetName())
+#      fullTable.SetUseFirstColumnAsRowHeader(False)
+#      header = fullTable.AddColumn()
+#      header.SetName("Metric name")
+#      header.InsertNextValue("Reference segmentation")
+#      header.InsertNextValue("Reference segment")
+#      header.InsertNextValue("Compare segmentation")
+#      header.InsertNextValue("Compare segment")
+#      header.InsertNextValue("Dice coefficient")
+#      header.InsertNextValue("True positives (%)")
+#      header.InsertNextValue("True negatives (%)")
+#      header.InsertNextValue("False positives (%)")
+#      header.InsertNextValue("False negatives (%)")
+#      header.InsertNextValue("Reference center")
+#      header.InsertNextValue("Compare center")
+#      header.InsertNextValue("Reference volume (cc)")
+#      header.InsertNextValue("Compare volume (cc)")
+#      fullTable.Modified()
+#      for index in range(0,refSeg.GetSegmentation().GetNumberOfSegments()):
+#        pnode.SetAndObserveDiceTableNode(dtab)
+#        pnode.SetReferenceSegmentID(refSeg.GetSegmentation().GetNthSegmentID(index))
+#        pnode.SetCompareSegmentID(predictedSeg.GetSegmentation().GetNthSegmentID(index))
+#        success = slicer.modules.segmentcomparison.logic().ComputeDiceStatistics(pnode)
+#        col = dtab.GetTable().GetColumn(1)
+#        col.SetName(predictedSeg.GetSegmentation().GetNthSegmentID(index+1))
+#        fullTable.AddColumn(col)
+#      flipper = vtk.vtkTransposeTable()
+#      flipper.SetInputData(fullTable.GetTable())
+#      flipper.Update()
+#      fullTable.SetAndObserveTable(flipper.GetOutput())
+#      fullTable.RemoveColumn(0)
+#      fullTable.RemoveColumn(0)
+#      fullTable.RemoveColumn(0)
+#      fullTable.RemoveColumn(0)
+#      fullTable.SetUseFirstColumnAsRowHeader(True)
+#      fullTable.SetUseColumnNameAsColumnHeader(True)
+#      slicer.mrmlScene.RemoveNode(dtab)
       
 class MEMOSTest(ScriptedLoadableModuleTest):
     """

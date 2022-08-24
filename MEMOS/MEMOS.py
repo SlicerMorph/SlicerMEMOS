@@ -10,6 +10,7 @@ import os
 import sys
 import tempfile
 import shutil
+import time
 from glob import glob
 from packaging import version
 
@@ -127,6 +128,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.modelPathSingle.filters = ctk.ctkPathLineEdit.Files
         self.modelPathSingle.nameFilters= ["Model (*.pth)"]
         self.modelPathSingle.setToolTip("Select the segmentation model")
+        self.modelPathSingle.currentPath = self.getMEMOSModelPath()
         singleParametersFormLayout.addRow("Segmentation model: ", self.modelPathSingle)
 
         #
@@ -183,7 +185,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         
         # connections
         self.volumeSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingle)
-        self.modelPathSingle.connect('currentPathChanged(const QString &)', self.onSelectSingle)
+        self.modelPathSingle.connect('currentPathChanged(const QString &)', self.onSelectSingleModelPath)
         self.applySingleButton.connect('clicked(bool)', self.onApplySingleButton)
         self.MEMOSSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingleEval)
         self.referenceSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingleEval)
@@ -217,6 +219,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.modelPath.filters = ctk.ctkPathLineEdit.Files
         self.modelPath.nameFilters= ["Model (*.pth)"]
         self.modelPath.setToolTip("Select the segmentation model")
+        self.modelPath.currentPath = self.getMEMOSModelPath()
         parametersFormLayout.addRow("Segmentation model: ", self.modelPath)
 
         #
@@ -237,7 +240,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
 
         # connections
         self.volumePath.connect('currentPathChanged(const QString &)', self.onSelect)
-        self.modelPath.connect('currentPathChanged(const QString &)', self.onSelect)
+        self.modelPath.connect('currentPathChanged(const QString &)', self.onSelectModelPath)
         self.outputPath.connect('currentPathChanged(const QString &)', self.onSelect)
         self.applyButton.connect('clicked(bool)', self.onApplyButton)
 
@@ -247,10 +250,20 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
     def onSelectSingle(self):
         self.applySingleButton.enabled = bool(self.volumeSelector.currentNode() and self.modelPathSingle.currentPath)
     
+    def onSelectSingleModelPath(self):
+        self.saveMEMOSModelPath(self.modelPathSingle.currentPath)
+        self.modelPath.currentPath = self.getMEMOSModelPath()
+        self.applySingleButton.enabled = bool(self.volumeSelector.currentNode() and self.modelPathSingle.currentPath)
+    
     def onSelectSingleEval(self):
         self.evaluateSegmentationButton.enabled = bool(self.MEMOSSelector.currentNode() and self.referenceSelector.currentNode())
         
     def onSelect(self):
+        self.applyButton.enabled = bool(self.modelPath.currentPath and self.volumePath.currentPath and self.outputPath.currentPath)
+    
+    def onSelectModelPath(self):
+        self.saveMEMOSModelPath(self.modelPathSingle.currentPath)
+        self.modelPathSingle.currentPath = self.getMEMOSModelPath()
         self.applyButton.enabled = bool(self.modelPath.currentPath and self.volumePath.currentPath and self.outputPath.currentPath)
 
     def onApplyButton(self):
@@ -258,8 +271,8 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         logic = MEMOSLogic()
         logic.runBatch(self.volumePath.currentPath, self.modelPath.currentPath, self.outputPath.currentPath, self.colorNode)
 
-
-    def onApplySingleButton(self):
+    def onApplySingleButton(self):       
+        start = time.time()
         self.setColorTable()
         tempVolumePath = os.path.join(slicer.app.temporaryPath, 'tempMEMOSVolume')
         if os.path.isdir(tempVolumePath):
@@ -276,11 +289,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
           shutil.rmtree(tempOutputPath)
         os.mkdir(tempOutputPath)
         logic = MEMOSLogic()
-        import time
-        start = time.time()
         logic.runSingle(tempVolumeFile, self.modelPathSingle.currentPath, tempOutputPath)
-        end = time.time()
-        print("MEMOS Inference time: ", end - start)
         if len(os.listdir(tempOutputPath))>0:
           labelFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
           labelNode = slicer.util.loadLabelVolume(labelFile)
@@ -296,6 +305,8 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
           segID = shNode.GetItemByDataNode(segmentationNode)
           shNode.SetItemParent(segID,volID)       
           self.MEMOSSelector.setCurrentNode(segmentationNode)
+          end = time.time()
+          print("MEMOS Inference time: ", end - start)
         else: 
           print("No segmentation was saved to the temporary folder")  
         slicer.mrmlScene.RemoveNode(labelNode)
@@ -321,7 +332,34 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
       except:
         print("Error loading color node from: ", colorNodePath)
         self.colorNode = None 
+    
+    def saveMEMOSModelPath(self, modelPath):
+      # don't save if identical to saved
+      settings = qt.QSettings()
+      if settings.contains('Developer/MEMOSModelPath'):
+        modelPathSaved = settings.value('Developer/MEMOSModelPath')
+        if modelPathSaved == modelPath:
+          return
+      if not self.isValidMEMOSModelPath(modelPath):
+        return
+      settings.setValue('Developer/MEMOSModelPath', modelPath)
 
+    def getMEMOSModelPath(self):
+      # If path is defined in settings then use that
+      settings = qt.QSettings()
+      if settings.contains('Developer/MEMOSModelPath'):
+        modelPath = settings.value('Developer/MEMOSModelPath')
+        if self.isValidMEMOSModelPath(modelPath):
+          return modelPath
+      else:
+        return ""
+
+    def isValidMEMOSModelPath(self, modelPath):
+      if os.path.exists(modelPath):
+        return True
+      else:
+        print("MEMOS model path invalid: No model found")
+        return False 
       
 #
 # MEMOSLogic
@@ -468,24 +506,13 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
             AddChanneld(keys=["image"]),
             ToTensord(keys=["image"]),
         ])
-        # define post-transforms
-        post_transforms = Compose([
-            Invertd(
-            keys=["pred"],
-            transform=pre_transforms,
-            orig_keys=["image"],  
-            nearest_interp=False,
-            to_tensor=True,
-     ),
-])
+
         # get volumes in directory
         images = []
         volumeExtensions = ['nrrd', 'nii.gz']
         for root, dirnames, imageNames in os.walk(volumePath):
           for imageName in imageNames:
-            print(imageNames)
             imName, imExt = imageName.split(os.extsep,1)
-            print(imExt)
             if any( ext in imExt for ext in volumeExtensions):
               images.append(os.path.join(root, imageName))
         files = [{"image": image} for image in images]
@@ -526,10 +553,10 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
 
         with torch.no_grad():
           for filepath in files:
+            start=time.time()
             image = pre_transforms(filepath)['image'].to(device)
             output_raw = sliding_window_inference(image, (image_dim, image_dim, image_dim), 4, net, overlap=0.8)
-            filepath["pred"]= torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
-            output_final = post_transforms(filepath)['pred'].to(device)
+            output_final= torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
             outputName = os.path.basename(filepath.get("image").split('.')[0])
             outputLabelPath = os.path.join(outputPath, outputName + "_seg.nii.gz")
             outputSegPath = os.path.join(outputPath, outputName + ".seg.nrrd")
@@ -548,7 +575,9 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
             slicer.mrmlScene.RemoveNode(labelNode)
             slicer.mrmlScene.RemoveNode(segmentationNode)
             os.remove(outputLabelPath)
-              
+            end = time.time()
+            print("MEMOS Inference time: ", end - start)    
+               
 #    def getDiceTable(self, refSeg, predictedSeg):
 #      pnode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentComparisonNode")
 #      pnode.SetAndObserveReferenceSegmentationNode(refSeg)

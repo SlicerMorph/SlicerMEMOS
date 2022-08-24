@@ -32,9 +32,9 @@ class MEMOS(ScriptedLoadableModule):
           if not slicer.util.confirmOkCancelDisplay(f"MEMOS requires installation of MONAI (version {monaiVersion}).\nClick OK to install this version and restart Slicer."):
             self.showBrowserOnEnter = False
             return
-          slicer.util.pip_install('monai[itk, pynrrd]=='+ monaiVersion)
+          slicer.util.pip_install('monai[pynrrd]=='+ monaiVersion)
       except:
-        slicer.util.pip_install('monai[itk, pynrrd]=='+ monaiVersion)
+        slicer.util.pip_install('monai[pynrrd]=='+ monaiVersion)
       try:
         import pillow
       except:

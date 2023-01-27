@@ -1,4 +1,6 @@
 # MEMOS
-**Mouse Embryo Multi-Organ Segmentations (MEMOS):** A 3D Slicer extension for automated segmentation of fetal mice. For details on the method please see the [accompanying preprint](https://www.biorxiv.org/content/10.1101/2022.08.26.505447v2.full). For installation instructions, please refer to the [supplementary document](https://www.biorxiv.org/content/10.1101/2022.08.26.505447v2.supplementary-material).
+**Mouse Embryo Multi-Organ Segmentations (MEMOS):** A 3D Slicer extension for automated segmentation of fetal mice. For details on the method please see the [accompanying preprint](https://www.biorxiv.org/content/10.1101/2022.08.26.505447v2.full). For step-by-step installation and use instructions, please refer to the [supplementary document](https://www.biorxiv.org/content/10.1101/2022.08.26.505447v2.supplementary-material).
+
+Sample data for scan volumes of fetal mice at stage E15.5 can be downloaded from the [IMPC Embryo Viewer](https://www.mousephenotype.org/embryoviewer/)
 
 <img src="./memos.jpg">

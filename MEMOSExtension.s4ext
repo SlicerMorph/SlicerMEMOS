@@ -24,7 +24,7 @@ homepage    https://github.com/SlicerMorph/SlicerMEMOS
 contributors Sara Rolfe (SCRI), Murat Maga (SCRI, UW)
 
 # Match category in the xml description of the module (where it shows up in Modules menu)
-category    SlicerMorph
+category    MEMOS
 
 # url to icon (png, size 128x128 pixels)
 iconurl     https://github.com/SlicerMorph/SlicerMEMOS/raw/main/MEMOS/Resources/Icons/MEMOS.png

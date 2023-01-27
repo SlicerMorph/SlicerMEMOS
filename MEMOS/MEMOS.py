@@ -66,17 +66,15 @@ class MEMOS(ScriptedLoadableModule):
         ScriptedLoadableModule.__init__(self, parent)
         self.installLibs()
         self.parent.title = "MEMOS"  # TODO make this more human readable by adding spaces
-        self.parent.categories = ["SlicerMorph.SlicerMorph Utilities"]
+        self.parent.categories = ["MEMOS"]
         self.parent.dependencies = []
         self.parent.contributors = [
-            "Sara Rolfe (UW), Murat Maga (UW)"]  # replace with "Firstname Lastname (Organization)"
+            "Sara Rolfe (SCRI), Murat Maga (SCRI, UW)"]  # replace with "Firstname Lastname (Organization)"
         self.parent.helpText = """
       This model loads a PyTorch Deep Learning model and does inference on an image loaded in the scene.
       """
         self.parent.acknowledgementText = """
-      This module was developed by Sara Rolfe for SlicerMorph. SlicerMorph was originally supported by an NSF/DBI grant, "An Integrated Platform for Retrieval, Visualization and Analysis of 3D Morphology From Digital Biological Collections"
-      awarded to Murat Maga (1759883), Adam Summers (1759637), and Douglas Boyer (1759839).
-      https://nsf.gov/awardsearch/showAward?AWD_ID=1759883&HistoricalAwards=false
+      This module was developed by Sara Rolfe and was supported by grants (OD032627 and HD104435) awarded to Murat Maga from National Institutes of Health."
       """  # replace with organization, grant and thanks.
 
 class MEMOSWidget(ScriptedLoadableModuleWidget):

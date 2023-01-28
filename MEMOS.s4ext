@@ -34,7 +34,7 @@ iconurl     https://github.com/SlicerMorph/SlicerMEMOS/raw/main/MEMOS/Resources/
 status      Beta
 
 # One line stating what the module does
-description This extension enables deep learning-powered segmentation of 50 anatomical structures from microCT scans of embryonic mice.
+description This extension enables deep learning-powered segmentation of 50 anatomical structures from microCT scans of fetal mice (E15).
 
 # Space separated list of urls
 screenshoturls https://github.com/SlicerMorph/SlicerMEMOS/raw/main/memos.jpg

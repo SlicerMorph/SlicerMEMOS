@@ -71,7 +71,7 @@ class MEMOS(ScriptedLoadableModule):
         self.parent.contributors = [
             "Sara Rolfe (SCRI), Murat Maga (SCRI, UW)"]  # replace with "Firstname Lastname (Organization)"
         self.parent.helpText = """
-      This model loads a PyTorch Deep Learning model and does inference on an image loaded in the scene.
+      This model loads a PyTorch Deep Learning model and does inference on an 3D diceCT scan of a mouse fetus loaded in the scene. For more information, please see online documentation: https://github.com/SlicerMorph/SlicerMEMOS#readme 
       """
         self.parent.acknowledgementText = """
       This module was developed by Sara Rolfe and was supported by grants (OD032627 and HD104435) awarded to Murat Maga from National Institutes of Health."

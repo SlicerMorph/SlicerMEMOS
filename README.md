@@ -6,7 +6,7 @@ Briefly you need:
   1. (Optional) install PyTorch extension that will provide torch library most suitable for your platform. This step is necessary for GPU based inference. Otherwise, MEMOS will fallback to CPU based inference. Please install PyTorch prior to MEMOS. 
   2. Install MEMOS extension. 
   3. download the pretrained network (one-time) from [this link](https://app.box.com/shared/static/4nygg33o70oj5xvnhew11zz5geclus5b.pth). 
-  4. and obtain a sample dataset [Eg. CBX4 mutant From IMPC](https://www.mousephenotype.org/embryoviewer/?gene_symbol=CBX4)
+  4. and obtain a sample dataset [Eg. CBX4 mutant From IMPC](https://raw.githubusercontent.com/SlicerMorph/SampleData/master/IMPC_sample_data.nrrd)
 
 If you use this work, please cite **Rolfe SM, Whikehart SM, Maga AM (2023) Deep learning enabled multi-organ segmentation of mouse embryos. Biology Open, 12(2):bio059698. https://doi.org/10.1242/bio.059698**
 

@@ -21,50 +21,9 @@ class MEMOS(ScriptedLoadableModule):
     """Uses ScriptedLoadableModule base class, available at:
       https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
       """
-    def installLibs(self):
-      needRestart = False
-      # MONAI
-      monaiVersion = "0.9.0"
-      try:
-        import monai
-        if version.parse(monai.__version__) != version.parse(monaiVersion):
-          slicer.util.pip_uninstall('monai')
-          needRestart=True
-          if not slicer.util.confirmOkCancelDisplay(f"MEMOS requires installation of MONAI (version {monaiVersion}).\nClick OK to install this version and restart Slicer."):
-            self.showBrowserOnEnter = False
-            return
-          slicer.util.pip_install('monai[pynrrd]=='+ monaiVersion)
-      except:
-        slicer.util.pip_install('monai[pynrrd]=='+ monaiVersion)
-      try:
-        import pillow
-      except:
-        slicer.util.pip_install('pillow')
-      try:
-        import nibabel
-      except:
-        slicer.util.pip_install('nibabel')
-      try:
-        import einops
-      except:
-        slicer.util.pip_install('einops')
-      try:
-        import torch
-      except:
-        if slicer.app.os == 'macosx':
-          slicer.util.pip_install('torch torchvision torchaudio')
-        elif slicer.app.os == 'linux':
-          slicer.util.pip_install('torch==1.10.2+cpu torchvision==0.11.3+cpu torchaudio==0.10.2+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html')
-        elif slicer.app.os == 'win':
-          slicer.util.pip_install('torch torchvision torchaudio')
-        else:
-          print("OS not recognized: Dependencies will not be installed")
-      if needRestart:
-        slicer.util.restart()
-
+ 
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
-        self.installLibs()
         self.parent.title = "MEMOS"  # TODO make this more human readable by adding spaces
         self.parent.categories = ["MEMOS"]
         self.parent.dependencies = []
@@ -265,11 +224,14 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.applyButton.enabled = bool(self.modelPath.currentPath and self.volumePath.currentPath and self.outputPath.currentPath)
 
     def onApplyButton(self):
-        self.setColorTable()
         logic = MEMOSLogic()
+        logic.setupPythonRequirements()
+        self.setColorTable()
         logic.runBatch(self.volumePath.currentPath, self.modelPath.currentPath, self.outputPath.currentPath, self.colorNode)
 
     def onApplySingleButton(self):
+        logic = MEMOSLogic()
+        logic.setupPythonRequirements()
         start = time.time()
         self.setColorTable()
         tempVolumePath = os.path.join(slicer.app.temporaryPath, 'tempMEMOSVolume')
@@ -286,7 +248,6 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         if os.path.isdir(tempOutputPath):
           shutil.rmtree(tempOutputPath)
         os.mkdir(tempOutputPath)
-        logic = MEMOSLogic()
         logic.runSingle(tempVolumeFile, self.modelPathSingle.currentPath, tempOutputPath)
         if len(os.listdir(tempOutputPath))>0:
           labelFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
@@ -372,7 +333,51 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       Uses ScriptedLoadableModuleLogic base class, available at:
       https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
       """
-
+    def setupPythonRequirements(self):
+      print("Checking python dependencies")
+      # Install PyTorch
+      try:
+        import PyTorchUtils
+      except ModuleNotFoundError:
+        slicer.util.messageBox("MEMOS requires the PyTorch extension. Please install it from the Extensions Manager.")
+      torchLogic = PyTorchUtils.PyTorchUtilsLogic()
+      if not torchLogic.torchInstalled():
+        logging.debug('MEMOS requires the PyTorch Python package. Installing... (it may take several minutes)')
+        torch = torchLogic.installTorch(askConfirmation=True)
+        if torch is None:
+          slicer.util.messageBox('PyTorch extension needs to be installed manually to use this module.')
+    
+      # Install additional python packages
+      try:
+        import pillow
+      except:
+        logging.debug('Pillow Python package is required. Installing...')
+        slicer.util.pip_install('pillow')
+      try:
+        import nibabel
+      except:
+        logging.debug('Nibabel Python package is required. Installing...')
+        slicer.util.pip_install('nibabel')
+      try:
+        import einops
+      except:
+        logging.debug('Einops Python package is required. Installing...')
+        slicer.util.pip_install('einops')
+      
+      # Install MONAI and restart if the version was updated.
+      monaiVersion = "0.9.0"
+      try:
+        import monai
+        if version.parse(monai.__version__) != version.parse(monaiVersion):
+          logging.debug(f'MEMOS requires MONAI version {monaiVersion}. Installing... (it may take several minutes)')
+          slicer.util.pip_uninstall('monai')
+          slicer.util.pip_install('monai[pynrrd]=='+ monaiVersion)
+          if slicer.util.confirmOkCancelDisplay(f'MONAI version was updated {monaiVersion}.\n Click OK restart Slicer.'):
+            slicer.util.restart()
+      except:
+        logging.debug('MEMOS requires installation of the MONAI Python package. Installing... (it may take several minutes)')
+        slicer.util.pip_install('monai[pynrrd]=='+ monaiVersion)
+        
     def runSingle(self, imagePath, modelPath, outputPath):
         # import MONAI and dependencies
         import nibabel as nib
@@ -667,5 +672,4 @@ class MEMOSTest(ScriptedLoadableModuleTest):
         logic = MEMOSLogic()
         self.assertIsNotNone(logic.hasImageData(volumeNode))
         self.delayDisplay('Test passed!')
-
 

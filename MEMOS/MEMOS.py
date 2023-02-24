@@ -239,9 +239,13 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
           shutil.rmtree(tempVolumePath)
         os.mkdir(tempVolumePath)
         volumeNode = self.volumeSelector.currentNode()
+        
+        # temporarily reset the spacing and origin
         originalSpacing = volumeNode.GetSpacing()
-        if originalSpacing != (1,1,1):
-           volumeNode.SetSpacing((1,1,1))
+        originalOrigin = volumeNode.GetOrigin()
+        volumeNode.SetSpacing((1,1,1))
+        volumeNode.SetOrigin(0,0,0)
+        
         tempVolumeFile = os.path.join(tempVolumePath, volumeNode.GetName() +'.nii.gz')
         slicer.util.saveNode(volumeNode, tempVolumeFile)
         tempOutputPath = os.path.join(slicer.app.temporaryPath,'tempMEMOSOut')
@@ -253,9 +257,13 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
           labelFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
           labelNode = slicer.util.loadLabelVolume(labelFile)
           labelNode.GetDisplayNode().SetAndObserveColorNodeID(self.colorNode.GetID())
-          if originalSpacing != (1,1,1):
-            volumeNode.SetSpacing(originalSpacing)
-            labelNode.SetSpacing(originalSpacing)
+         
+          # reset the spacing and origin to original values
+          volumeNode.SetSpacing(originalSpacing)
+          labelNode.SetSpacing(originalSpacing)
+          volumeNode.SetOrigin(originalOrigin)
+          labelNode.SetOrigin(originalOrigin)
+                    
           segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
           slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(labelNode, segmentationNode)
           segmentationNode.CreateClosedSurfaceRepresentation()
@@ -570,13 +578,17 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
               )
             labelNode = slicer.util.loadLabelVolume(outputLabelPath)
             labelNode.GetDisplayNode().SetAndObserveColorNodeID(colorNode.GetID())
-            #if originalSpacing != (1,1,1):
-              #labelNode.SetSpacing(originalSpacing)
+            volumeNode = slicer.util.loadVolume(filepath['image'])
+            originalSpacing = volumeNode.GetSpacing()
+            originalOrigin = volumeNode.GetOrigin()
+            labelNode.SetSpacing(originalSpacing)
+            labelNode.SetOrigin(originalOrigin)             
             segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
             slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(labelNode, segmentationNode)
             slicer.util.saveNode(segmentationNode, outputSegPath)
             slicer.mrmlScene.RemoveNode(labelNode)
             slicer.mrmlScene.RemoveNode(segmentationNode)
+            slicer.mrmlScene.RemoveNode(volumeNode)
             os.remove(outputLabelPath)
             end = time.time()
             print("MEMOS Inference time: ", end - start)
@@ -672,4 +684,3 @@ class MEMOSTest(ScriptedLoadableModuleTest):
         logic = MEMOSLogic()
         self.assertIsNotNone(logic.hasImageData(volumeNode))
         self.delayDisplay('Test passed!')
-

@@ -28,7 +28,7 @@ contributors Sara Rolfe (SCRI), Murat Maga (SCRI, UW)
 category    Segmentation
 
 # url to icon (png, size 128x128 pixels)
-iconurl     https://github.com/SlicerMorph/SlicerMEMOS/raw/main/MEMOS/Resources/Icons/MEMOS.png
+iconurl     https://raw.githubusercontent.com/SlicerMorph/SlicerMEMOS/main/MEMOS/Resources/Icons/MEMOS.png
 
 # Give people an idea what to expect from this code
 #  - Is it just a test or something you stand behind?
@@ -38,7 +38,7 @@ status      Beta
 description This extension enables deep learning-powered segmentation of 50 anatomical structures from microCT scans of fetal mice (E15).
 
 # Space separated list of urls
-screenshoturls https://github.com/SlicerMorph/SlicerMEMOS/raw/main/memos.jpg
+screenshoturls https://raw.githubusercontent.com/SlicerMorph/SlicerMEMOS/main/memos.jpg
 
 # 0 or 1: Define if the extension should be enabled after its installation.
 enabled 1

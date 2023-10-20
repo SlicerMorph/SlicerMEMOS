@@ -21,7 +21,7 @@ class MEMOS(ScriptedLoadableModule):
     """Uses ScriptedLoadableModule base class, available at:
       https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
       """
- 
+
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
         self.parent.title = "MEMOS"  # TODO make this more human readable by adding spaces
@@ -42,7 +42,6 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
       """
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
-
         # Set up tabs to split workflow
         tabsWidget = qt.QTabWidget()
         singleTab = qt.QWidget()
@@ -82,10 +81,10 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         # Select model file
         #
         self.modelPathSingle = ctk.ctkPathLineEdit()
+        self.modelPathSingle.currentPath = self.getMEMOSModelPath()
         self.modelPathSingle.filters = ctk.ctkPathLineEdit.Files
         self.modelPathSingle.nameFilters= ["Model (*.pth)"]
         self.modelPathSingle.setToolTip("Select the segmentation model")
-        self.modelPathSingle.currentPath = self.getMEMOSModelPath()
         singleParametersFormLayout.addRow("Segmentation model: ", self.modelPathSingle)
 
         #
@@ -101,10 +100,6 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         #
         singleEvaluationCollapsibleButton = ctk.ctkCollapsibleButton()
         singleEvaluationCollapsibleButton.text = "Evaluate Segmentation"
-        #singleTabLayout.addRow(singleEvaluationCollapsibleButton)
-
-        # Layout within the dummy collapsible button
-        #singleEvaluationFormLayout = qt.QFormLayout(singleEvaluationCollapsibleButton)
 
         #
         # Select MEMOS segmentation
@@ -117,7 +112,6 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.MEMOSSelector.noneEnabled = True
         self.MEMOSSelector.showHidden = False
         self.MEMOSSelector.setMRMLScene( slicer.mrmlScene )
-        #singleEvaluationFormLayout.addRow("MEMOS segmentation: ", self.MEMOSSelector)
 
         #
         # Select Reference segmentation
@@ -130,7 +124,6 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.referenceSelector.noneEnabled = True
         self.referenceSelector.showHidden = False
         self.referenceSelector.setMRMLScene( slicer.mrmlScene )
-        #singleEvaluationFormLayout.addRow("Reference segmentation: ", self.referenceSelector)
 
         #
         # Apply Evaluation Button
@@ -138,15 +131,13 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         self.evaluateSegmentationButton = qt.QPushButton("Compare Segmentations")
         self.evaluateSegmentationButton.toolTip = "Compare MEMOS segmentation to a reference"
         self.evaluateSegmentationButton.enabled = False
-        #singleEvaluationFormLayout.addRow(self.evaluateSegmentationButton)
 
-        # connections
+        # Connections
         self.volumeSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingle)
         self.modelPathSingle.connect('currentPathChanged(const QString &)', self.onSelectSingleModelPath)
         self.applySingleButton.connect('clicked(bool)', self.onApplySingleButton)
         self.MEMOSSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingleEval)
         self.referenceSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onSelectSingleEval)
-        #self.evaluateSegmentationButton.connect('clicked(bool)', self.onEvaluateSegmentationButton)
 
         ################################### Batch Tab ###################################
         # Instantiate and connect widgets
@@ -165,7 +156,6 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         #
         self.volumePath = ctk.ctkPathLineEdit()
         self.volumePath.filters = ctk.ctkPathLineEdit.Dirs
-        # self.volumePath.nameFilters= ["Volume (*.nrrd)"]
         self.volumePath.setToolTip("Select the volume directory")
         parametersFormLayout.addRow("Volume directory: ", self.volumePath)
 
@@ -173,10 +163,10 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         # Select model file
         #
         self.modelPath = ctk.ctkPathLineEdit()
+        self.modelPath.currentPath = self.getMEMOSModelPath()
         self.modelPath.filters = ctk.ctkPathLineEdit.Files
         self.modelPath.nameFilters= ["Model (*.pth)"]
         self.modelPath.setToolTip("Select the segmentation model")
-        self.modelPath.currentPath = self.getMEMOSModelPath()
         parametersFormLayout.addRow("Segmentation model: ", self.modelPath)
 
         #
@@ -300,6 +290,26 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         print("Error loading color node from: ", colorNodePath)
         self.colorNode = None
 
+    def downloadMEMOSModel(self):
+      # if no valid model path, try to download
+      import SampleData
+      filename = "best_metric_model_largePatch_noise.pth"
+      link = "https://app.box.com/shared/static/4nygg33o70oj5xvnhew11zz5geclus5b.pth"
+      progressDialog = slicer.util.createProgressDialog(
+                labelText="Downloading the MEMOS segmentation model. This may take a minute.",
+                maximum=0,
+            )
+      slicer.app.processEvents()
+      SampleData.SampleDataLogic().downloadFileIntoCache(link, filename)
+      progressDialog.close()
+      modelPath = os.path.join(slicer.app.cachePath, filename)
+      if self.isValidMEMOSModelPath(modelPath):
+        self.saveMEMOSModelPath(modelPath)
+        return modelPath
+      else:
+        slicer.util.infoDisplay("Error downloading MEMOS segmentation model. Please download manually following the instructions on the module help page.")
+        return ""
+
     def saveMEMOSModelPath(self, modelPath):
       # don't save if identical to saved
       settings = qt.QSettings()
@@ -318,8 +328,8 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         modelPath = settings.value('Developer/MEMOSModelPath')
         if self.isValidMEMOSModelPath(modelPath):
           return modelPath
-      else:
-        return ""
+      modelPath = self.downloadMEMOSModel()
+      return modelPath
 
     def isValidMEMOSModelPath(self, modelPath):
       if os.path.exists(modelPath):

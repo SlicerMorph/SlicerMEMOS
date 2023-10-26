@@ -8,8 +8,9 @@ Briefly you need:
   1. Install the MEMOs extension. As part of the installation, PyTorch extension will also be installed. Restart Slicer for changes to take effect. 
   2. Switch to pytorch module and choose automatic install (one-time only. You can skip this, if you already installed PyTorch before)
   3. Switch to MEMOS module. 
-  4. download the pretrained network (one-time) from [this link](https://app.box.com/shared/static/4nygg33o70oj5xvnhew11zz5geclus5b.pth). 
-  5. and obtain a sample dataset [Eg. sample from IMPC](https://raw.githubusercontent.com/SlicerMorph/SampleData/master/IMPC_sample_data.nrrd)
+  4. MEMOS will automatically download the pretrained network (one-time). If it fails for any reason, you can manually download the pretrained network from [this link](https://app.box.com/shared/static/4nygg33o70oj5xvnhew11zz5geclus5b.pth). 
+  5. Obtain a sample dataset [Eg. sample from IMPC](https://raw.githubusercontent.com/SlicerMorph/SampleData/master/IMPC_sample_data.nrrd)
+
  
 If you use this work, please cite **Rolfe SM, Whikehart SM, Maga AM (2023) Deep learning enabled multi-organ segmentation of mouse embryos. Biology Open, 12(2):bio059698. https://doi.org/10.1242/bio.059698**
 

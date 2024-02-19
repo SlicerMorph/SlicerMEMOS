@@ -256,6 +256,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
                     
           segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
           slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(labelNode, segmentationNode)
+          segmentationNode.SetReferenceImageGeometryParameterFromVolumeNode(volumeNode)
           segmentationNode.CreateClosedSurfaceRepresentation()
           shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
           volID = shNode.GetItemByDataNode(volumeNode)
@@ -595,6 +596,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
             labelNode.SetOrigin(originalOrigin)             
             segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
             slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(labelNode, segmentationNode)
+            segmentationNode.SetReferenceImageGeometryParameterFromVolumeNode(volumeNode)
             slicer.util.saveNode(segmentationNode, outputSegPath)
             slicer.mrmlScene.RemoveNode(labelNode)
             slicer.mrmlScene.RemoveNode(segmentationNode)

@@ -30,7 +30,7 @@ class MEMOS(ScriptedLoadableModule):
         self.parent.contributors = [
             "Sara Rolfe (SCRI), Murat Maga (SCRI, UW)"]  # replace with "Firstname Lastname (Organization)"
         self.parent.helpText = """
-      This model loads a PyTorch Deep Learning model and does inference on an 3D diceCT scan of a mouse fetus loaded in the scene. For more information, please see online documentation: https://github.com/SlicerMorph/SlicerMEMOS#readme 
+      This model loads a PyTorch Deep Learning model and does inference on an 3D diceCT scan of a mouse fetus loaded in the scene. For more information, please see online documentation: https://github.com/SlicerMorph/SlicerMEMOS#readme
       """
         self.parent.acknowledgementText = """
       This module was developed by Sara Rolfe and was supported by grants (OD032627 and HD104435) awarded to Murat Maga from National Institutes of Health."
@@ -73,8 +73,8 @@ def registerSampleData():
 
 
 
-      
-      
+
+
 
 class MEMOSWidget(ScriptedLoadableModuleWidget):
     """Uses ScriptedLoadableModuleWidget base class, available at:
@@ -257,59 +257,107 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
         logic = MEMOSLogic()
         logic.setupPythonRequirements()
         self.setColorTable()
-        logic.runBatch(self.volumePath.currentPath, self.modelPath.currentPath, self.outputPath.currentPath, self.colorNode)
-
-    def onApplySingleButton(self):
-        logic = MEMOSLogic()
-        logic.setupPythonRequirements()
-        start = time.time()
-        self.setColorTable()
-        tempVolumePath = os.path.join(slicer.app.temporaryPath, 'tempMEMOSVolume')
-        if os.path.isdir(tempVolumePath):
-          shutil.rmtree(tempVolumePath)
-        os.mkdir(tempVolumePath)
-        volumeNode = self.volumeSelector.currentNode()
-        
-        # temporarily reset the spacing and origin
-        originalSpacing = volumeNode.GetSpacing()
-        originalOrigin = volumeNode.GetOrigin()
-        volumeNode.SetSpacing((1,1,1))
-        volumeNode.SetOrigin(0,0,0)
-        
-        tempVolumeFile = os.path.join(tempVolumePath, volumeNode.GetName() +'.nii.gz')
-        slicer.util.saveNode(volumeNode, tempVolumeFile)
-        tempOutputPath = os.path.join(slicer.app.temporaryPath,'tempMEMOSOut')
-        if os.path.isdir(tempOutputPath):
-          shutil.rmtree(tempOutputPath)
-        os.mkdir(tempOutputPath)
-        logic.runSingle(tempVolumeFile, self.modelPathSingle.currentPath, tempOutputPath)
-        if len(os.listdir(tempOutputPath))>0:
-          labelFile = os.path.join(tempOutputPath,os.listdir(tempOutputPath)[0])
-          labelNode = slicer.util.loadLabelVolume(labelFile)
+        volumeDir = self.volumePath.currentPath
+        outputPath = self.outputPath.currentPath
+        # get volumes in directory
+        images = []
+        volumeExtensions = ['nrrd', 'nii.gz']
+        for root, dirnames, imageNames in os.walk(volumeDir):
+          for imageName in imageNames:
+            imName, imExt = imageName.split(os.extsep,1)
+            if any( ext in imExt for ext in volumeExtensions):
+              images.append(os.path.join(root, imageName))
+        for image in images:
+          volumeNode = slicer.util.loadVolume(image)
+          labelFilePath = self.launchInference(volumeNode)
+          # load resulting labelmap
+          try:
+            labelNode = slicer.util.loadLabelVolume(labelFilePath)
+          except:
+            print("No segmentation generated for ", volumeNode.GetName())
+            return
+          labelNode.SetSpacing(volumeNode.GetSpacing())
+          labelNode.SetOrigin(volumeNode.GetOrigin())
           labelNode.GetDisplayNode().SetAndObserveColorNodeID(self.colorNode.GetID())
-         
-          # reset the spacing and origin to original values
-          volumeNode.SetSpacing(originalSpacing)
-          labelNode.SetSpacing(originalSpacing)
-          volumeNode.SetOrigin(originalOrigin)
-          labelNode.SetOrigin(originalOrigin)
-                    
+          # Create segmentation node from label map
           segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
           slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(labelNode, segmentationNode)
           segmentationNode.SetReferenceImageGeometryParameterFromVolumeNode(volumeNode)
           segmentationNode.CreateClosedSurfaceRepresentation()
-          shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
-          volID = shNode.GetItemByDataNode(volumeNode)
-          segID = shNode.GetItemByDataNode(segmentationNode)
-          shNode.SetItemParent(segID,volID)
-          self.MEMOSSelector.setCurrentNode(segmentationNode)
-          end = time.time()
-          print("MEMOS Inference time: ", end - start)
-        else:
-          print("No segmentation was saved to the temporary folder")
-        slicer.mrmlScene.RemoveNode(labelNode)
-        shutil.rmtree(tempVolumePath)
+          outputSegFile = os.path.join(outputPath, volumeNode.GetName() + ".seg.nrrd")
+          slicer.util.saveNode(segmentationNode, outputSegFile)
+          # Clean up
+          slicer.mrmlScene.RemoveNode(labelNode)
+          slicer.mrmlScene.RemoveNode(segmentationNode)
+          slicer.mrmlScene.RemoveNode(volumeNode)
+
+        tempLabelDir = os.path.dirname(labelFilePath)
+        shutil.rmtree(tempLabelDir)
+
+    def onApplySingleButton(self):
+      logic = MEMOSLogic()
+      logic.setupPythonRequirements()
+      self.setColorTable()
+      volumeNode = self.volumeSelector.currentNode()
+      # Do inference
+      labelFilePath = self.launchInference(volumeNode)
+      # Load resulting labelmap
+      try:
+        labelNode = slicer.util.loadLabelVolume(labelFilePath)
+      except:
+        print("No segmentation generated")
+        return
+      labelNode.SetSpacing(volumeNode.GetSpacing())
+      labelNode.SetOrigin(volumeNode.GetOrigin())
+      labelNode.GetDisplayNode().SetAndObserveColorNodeID(self.colorNode.GetID())
+      # Create segmentation node from label map
+      segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
+      slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(labelNode, segmentationNode)
+      segmentationNode.SetReferenceImageGeometryParameterFromVolumeNode(volumeNode)
+      segmentationNode.CreateClosedSurfaceRepresentation()
+      #assign segmentation to volume node
+      shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
+      volID = shNode.GetItemByDataNode(volumeNode)
+      segID = shNode.GetItemByDataNode(segmentationNode)
+      shNode.SetItemParent(segID,volID)
+      self.MEMOSSelector.setCurrentNode(segmentationNode)
+      # Clean up
+      slicer.mrmlScene.RemoveNode(labelNode)
+      tempLabelDir = os.path.dirname(labelFilePath)
+      shutil.rmtree(tempLabelDir)
+
+    def launchInference(self, volumeNode):
+      # Make directory to store volume for inference
+      tempVolumeDir = os.path.join(slicer.app.temporaryPath, 'tempMEMOSVolume')
+      if os.path.isdir(tempVolumeDir):
+        shutil.rmtree(tempVolumeDir)
+      os.mkdir(tempVolumeDir)
+
+      # Temporarily set volume spacing and origin to default values
+      originalSpacing = volumeNode.GetSpacing()
+      originalOrigin = volumeNode.GetOrigin()
+      volumeNode.SetSpacing((1,1,1))
+      volumeNode.SetOrigin(0,0,0)
+      tempVolumeFile = os.path.join(tempVolumeDir, volumeNode.GetName() +'.nii.gz')
+      slicer.util.saveNode(volumeNode, tempVolumeFile)
+
+      # Create directory for output segmentation
+      tempOutputPath = os.path.join(slicer.app.temporaryPath,'tempMEMOSOut')
+      if os.path.isdir(tempOutputPath):
         shutil.rmtree(tempOutputPath)
+      os.mkdir(tempOutputPath)
+      outputName = os.path.basename(volumeNode.GetName())
+      outputLabelPath = os.path.join(tempOutputPath, outputName + "_seg.nii.gz")
+
+      # run inference
+      logic = MEMOSLogic()
+      logic.processInference(tempVolumeFile, self.modelPathSingle.currentPath, outputLabelPath, self.colorNode)
+
+      # Reset the volume spacing and origin to original values
+      volumeNode.SetSpacing(originalSpacing)
+      volumeNode.SetOrigin(originalOrigin)
+      shutil.rmtree(tempVolumeDir)
+      return outputLabelPath
 
 #    def onEvaluateSegmentationButton(self):
 #      logic = MEMOSLogic()
@@ -392,6 +440,23 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       Uses ScriptedLoadableModuleLogic base class, available at:
       https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
       """
+    def processInference(self, volumePath, modelPath, outputLabelPath, colorNode):
+      inputVolume = {"image": volumePath}
+      # Get path to inference script
+      self.moduleDir = os.path.dirname(slicer.util.getModule('MEMOS').path)
+      inferenceScriptPyFile = os.path.join(self.moduleDir, "Scripts", "MEMOS_inference.py")
+      # Get Python executable path
+      pythonSlicerExecutablePath = shutil.which("PythonSlicer")
+      if not pythonSlicerExecutablePath:
+        raise RuntimeError("Python was not found")
+      MEMOS_inferenceCommand = [ pythonSlicerExecutablePath, str(inferenceScriptPyFile),
+        "--volume-path", str(inputVolume),
+        "--model-path", str(modelPath),
+        "--output-path", str(outputLabelPath),
+        "--color-node", str(colorNode) ]
+      proc = slicer.util.launchConsoleProcess(MEMOS_inferenceCommand)
+      slicer.util.logProcessOutput(proc)
+
     def setupPythonRequirements(self):
       print("Checking python dependencies")
       # Install PyTorch
@@ -405,7 +470,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         torch = torchLogic.installTorch(askConfirmation=True)
         if torch is None:
           slicer.util.messageBox('PyTorch extension needs to be installed manually to use this module.')
-    
+
       # Install additional python packages
       try:
         import pillow
@@ -422,7 +487,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       except:
         logging.debug('Einops Python package is required. Installing...')
         slicer.util.pip_install('einops')
-      
+
       # Install MONAI and restart if the version was updated.
       monaiVersion = "0.9.0"
       try:
@@ -430,220 +495,16 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         if version.parse(monai.__version__) != version.parse(monaiVersion):
           logging.debug(f'MEMOS requires MONAI version {monaiVersion}. Installing... (it may take several minutes)')
           slicer.util.pip_uninstall('monai')
-          slicer.util.pip_install('monai[pynrrd]=='+ monaiVersion)
+          slicer.util.pip_install('monai[pynrrd,fire]=='+ monaiVersion)
           if slicer.util.confirmOkCancelDisplay(f'MONAI version was updated {monaiVersion}.\n Click OK restart Slicer.'):
             slicer.util.restart()
       except:
         logging.debug('MEMOS requires installation of the MONAI Python package. Installing... (it may take several minutes)')
-        slicer.util.pip_install('monai[pynrrd]=='+ monaiVersion)
-        
-    def runSingle(self, imagePath, modelPath, outputPath):
-        # import MONAI and dependencies
-        import nibabel as nib
-        import numpy as np
-        import torch
-        import einops
-
-        from monai.config import print_config
-        from monai.data import Dataset, DataLoader, create_test_image_3d, decollate_batch
-        from monai.inferers import sliding_window_inference
-        from monai.networks.nets import UNETR
-        from monai.data.nifti_writer import write_nifti
-
-        from monai.transforms import (
-          Activationsd,
-          AsDiscreted,
-          AddChanneld,
-          Compose,
-          EnsureChannelFirstd,
-          Invertd,
-          LoadImaged,
-          Orientationd,
-          SaveImaged,
-          Spacingd,
-          CropForegroundd,
-          EnsureTyped,
-          ScaleIntensityRanged,
-          ToTensord
-        )
-        # define pre-transforms
-        pre_transforms = Compose([
-            LoadImaged(keys=["image"]),
-            EnsureChannelFirstd(keys=["image"]),
-            Orientationd(keys="image", axcodes="RAS"),
-            ScaleIntensityRanged(
-                keys=["image"], a_min=-175, a_max=250,
-                b_min=0.0, b_max=1.0, clip=True),
-            CropForegroundd(keys=["image"], source_key="image"),
-            AddChanneld(keys=["image"]),
-            ToTensord(keys=["image"]),
-        ])
-
-        # get volume
-        filepath = {"image": imagePath}
-
-        # set up model
-        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-
-        # set GPU
-        if torch.cuda.is_available():
-          os.environ["CUDA_VISIBLE_DEVICES"]="0"
-          print("Using device: ", os.environ["CUDA_VISIBLE_DEVICES"])
-        # check configuration
-        print_config()
-        torch.set_num_threads(24)
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print("Using device: ", device)
-        image_dim = 128
-
-        net = UNETR(
-            in_channels=1,
-            out_channels=51,
-            img_size=(image_dim, image_dim, image_dim),
-            feature_size=16,
-            hidden_size=768,
-            mlp_dim=3072,
-            num_heads=12,
-            pos_embed="perceptron",
-            norm_name="instance",
-            res_block=True,
-            dropout_rate=0.0,
-        ).to(device)
-
-        if device.type == "cpu":
-            net.load_state_dict(torch.load(modelPath, map_location='cpu'))
-        else:
-            net.load_state_dict(torch.load(modelPath))
-        net.eval()
-
-        with torch.no_grad():
-          image = pre_transforms(filepath)['image'].to(device)
-          output_raw = sliding_window_inference(
-            image, (image_dim, image_dim, image_dim), 4, net, overlap=0.8)
-          output_formatted = torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
-          outputFile = os.path.basename(filepath.get("image").split('.')[0]) + "_seg.nii.gz"
-          print("Writing: ", outputFile)
-          write_nifti(
-            data=output_formatted,
-            file_name=os.path.join(outputPath, outputFile)
-              )
-
-    def runBatch(self, volumePath, modelPath, outputPath, colorNode):
-        # import MONAI and dependencies
-        import nibabel as nib
-        import numpy as np
-        import torch
-        import einops
-
-        from monai.config import print_config
-        from monai.data import Dataset, DataLoader, create_test_image_3d, decollate_batch
-        from monai.inferers import sliding_window_inference
-        from monai.networks.nets import UNETR
-        from monai.data.nifti_writer import write_nifti
-
-        from monai.transforms import (
-          Activationsd,
-          AsDiscreted,
-          AddChanneld,
-          Compose,
-          EnsureChannelFirstd,
-          Invertd,
-          LoadImaged,
-          Orientationd,
-          SaveImaged,
-          Spacingd,
-          CropForegroundd,
-          EnsureTyped,
-          ScaleIntensityRanged,
-          ToTensord
-        )
-        # define pre-transforms
-        pre_transforms = Compose([
-            LoadImaged(keys=["image"]),
-            EnsureChannelFirstd(keys=["image"]),
-            Orientationd(keys="image", axcodes="RAS"),
-            ScaleIntensityRanged(
-                keys=["image"], a_min=-175, a_max=250,
-                b_min=0.0, b_max=1.0, clip=True),
-            AddChanneld(keys=["image"]),
-            ToTensord(keys=["image"]),
-        ])
-
-        # get volumes in directory
-        images = []
-        volumeExtensions = ['nrrd', 'nii.gz']
-        for root, dirnames, imageNames in os.walk(volumePath):
-          for imageName in imageNames:
-            imName, imExt = imageName.split(os.extsep,1)
-            if any( ext in imExt for ext in volumeExtensions):
-              images.append(os.path.join(root, imageName))
-        files = [{"image": image} for image in images]
-
-        # set up model
-        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-
-        # set GPU
-        if torch.cuda.is_available():
-          os.environ["CUDA_VISIBLE_DEVICES"]="0"
-          print("Using device: ", os.environ["CUDA_VISIBLE_DEVICES"])
-        # check configuration
-        print_config()
-        torch.set_num_threads(24)
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print("Using device: ", device)
-        image_dim = 128
-
-        net = UNETR(
-            in_channels=1,
-            out_channels=51,
-            img_size=(image_dim, image_dim, image_dim),
-            feature_size=16,
-            hidden_size=768,
-            mlp_dim=3072,
-            num_heads=12,
-            pos_embed="perceptron",
-            norm_name="instance",
-            res_block=True,
-            dropout_rate=0.0,
-        ).to(device)
-
-        if device.type == "cpu":
-            net.load_state_dict(torch.load(modelPath, map_location='cpu'))
-        else:
-            net.load_state_dict(torch.load(modelPath))
-        net.eval()
-
-        with torch.no_grad():
-          for filepath in files:
-            start=time.time()
-            image = pre_transforms(filepath)['image'].to(device)
-            output_raw = sliding_window_inference(image, (image_dim, image_dim, image_dim), 4, net, overlap=0.8)
-            output_final= torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
-            outputName = os.path.basename(filepath.get("image").split('.')[0])
-            outputLabelPath = os.path.join(outputPath, outputName + "_seg.nii.gz")
-            outputSegPath = os.path.join(outputPath, outputName + ".seg.nrrd")
-            print("Writing: ", outputLabelPath)
-            write_nifti(
-              data=output_final,
-              file_name=outputLabelPath
-              )
-            labelNode = slicer.util.loadLabelVolume(outputLabelPath)
-            labelNode.GetDisplayNode().SetAndObserveColorNodeID(colorNode.GetID())
-            volumeNode = slicer.util.loadVolume(filepath['image'])
-            originalSpacing = volumeNode.GetSpacing()
-            originalOrigin = volumeNode.GetOrigin()
-            labelNode.SetSpacing(originalSpacing)
-            labelNode.SetOrigin(originalOrigin)             
-            segmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode")
-            slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(labelNode, segmentationNode)
-            segmentationNode.SetReferenceImageGeometryParameterFromVolumeNode(volumeNode)
-            slicer.util.saveNode(segmentationNode, outputSegPath)
-            slicer.mrmlScene.RemoveNode(labelNode)
-            slicer.mrmlScene.RemoveNode(segmentationNode)
-            slicer.mrmlScene.RemoveNode(volumeNode)
-            os.remove(outputLabelPath)
-            end = time.time()
-            print("MEMOS Inference time: ", end - start)
+        slicer.util.pip_install('monai[pynrrd,fire]=='+ monaiVersion)
+      try:
+        import fire
+      except:
+        slicer.util.pip_install('fire')
 
 #    def getDiceTable(self, refSeg, predictedSeg):
 #      pnode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentComparisonNode")

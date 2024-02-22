@@ -9,6 +9,7 @@ set(MODULE_PYTHON_SCRIPTS
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
   Resources/Support/KOMP2.ctbl
+  Scripts/MEMOS_inference.py
   )
 
 #-----------------------------------------------------------------------------

@@ -276,6 +276,9 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
           except:
             print("No segmentation generated for ", volumeNode.GetName())
             return
+          dataType = labelNode.GetImageData().GetScalarTypeAsString()
+          if dataType != "unsigned char":
+            logic.castVolumeToUnsignedChar(labelNode)
           labelNode.SetSpacing(volumeNode.GetSpacing())
           labelNode.SetOrigin(volumeNode.GetOrigin())
           labelNode.GetDisplayNode().SetAndObserveColorNodeID(self.colorNode.GetID())
@@ -328,6 +331,7 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
 
     def launchInference(self, volumeNode):
       # Make directory to store volume for inference
+      logic = MEMOSLogic()
       tempVolumeDir = os.path.join(slicer.app.temporaryPath, 'tempMEMOSVolume')
       if os.path.isdir(tempVolumeDir):
         shutil.rmtree(tempVolumeDir)
@@ -350,7 +354,6 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
       outputLabelPath = os.path.join(tempOutputPath, outputName + "_seg.nii.gz")
 
       # run inference
-      logic = MEMOSLogic()
       logic.processInference(tempVolumeFile, self.modelPathSingle.currentPath, outputLabelPath, self.colorNode)
 
       # Reset the volume spacing and origin to original values
@@ -440,6 +443,25 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       Uses ScriptedLoadableModuleLogic base class, available at:
       https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
       """
+    def castVolumeToUnsignedChar(self, inputVolumeNode):
+      # Set parameters
+      parameters = {}
+      parameters["InputVolume"] = inputVolumeNode
+      parameters["OutputVolume"] = inputVolumeNode
+      parameters["Type"]="UnsignedShort"
+      # Execute
+      caster = slicer.modules.castscalarvolume
+      cliNode = slicer.cli.runSync(caster, None, parameters)
+      # Process results
+      if cliNode.GetStatus() & cliNode.ErrorsMask:
+        # error
+        errorText = cliNode.GetErrorText()
+        slicer.mrmlScene.RemoveNode(cliNode)
+        raise ValueError("CLI execution failed: " + errorText)
+      # success
+      slicer.mrmlScene.RemoveNode(cliNode)
+      return
+
     def processInference(self, volumePath, modelPath, outputLabelPath, colorNode):
       inputVolume = {"image": volumePath}
       # Get path to inference script

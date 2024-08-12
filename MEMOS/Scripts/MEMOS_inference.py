@@ -1,5 +1,6 @@
-import logging
 import os
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+import logging
 import sys
 import tempfile
 import shutil
@@ -50,18 +51,14 @@ def main(volume_path, model_path, output_path, color_node):
       ToTensord(keys=["image"]),
   ])
 
-  # set up model
-  os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-
   # set GPU
   if torch.cuda.is_available():
-    os.environ["CUDA_VISIBLE_DEVICES"]="0"
-    print("Using device: ", os.environ["CUDA_VISIBLE_DEVICES"])
+    print("Visible devices: ", os.environ["CUDA_VISIBLE_DEVICES"])
+    print("Using device : ", os.environ["CUDA_VISIBLE_DEVICES"][0])
   # check configuration
   print_config()
   torch.set_num_threads(24)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-  print("Using device: ", device)
   image_dim = 128
 
   net = UNETR(
@@ -98,7 +95,7 @@ def main(volume_path, model_path, output_path, color_node):
       )
 
 if __name__ == '__main__':
+  torch.cuda.set_device(0)
   fire.Fire(main)
-
 
 

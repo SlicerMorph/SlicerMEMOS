@@ -344,6 +344,17 @@ class MEMOSWidget(ScriptedLoadableModuleWidget):
       volumeNode.SetOrigin(0,0,0)
       tempVolumeFile = os.path.join(tempVolumeDir, volumeNode.GetName() +'.nii.gz')
       slicer.util.saveNode(volumeNode, tempVolumeFile)
+      import SimpleITK as sitk
+      reader = sitk.ImageFileReader()
+      reader.SetFileName(tempVolumeFile)
+      image = reader.Execute()
+      rescaleFilter = sitk.RescaleIntensityImageFilter()
+      rescaleFilter.SetOutputMaximum(255)
+      rescaleFilter.SetOutputMinimum(0)
+      rescaledImage = rescaleFilter.Execute(image)
+      writer = sitk.ImageFileWriter()
+      writer.SetFileName(tempVolumeFile)
+      writer.Execute(rescaledImage)
 
       # Create directory for output segmentation
       tempOutputPath = os.path.join(slicer.app.temporaryPath,'tempMEMOSOut')

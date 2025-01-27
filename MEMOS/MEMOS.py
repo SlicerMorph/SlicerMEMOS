@@ -500,7 +500,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       torchLogic = PyTorchUtils.PyTorchUtilsLogic()
       if not torchLogic.torchInstalled():
         logging.debug('MEMOS requires the PyTorch Python package. Installing... (it may take several minutes)')
-        torch = torchLogic.installTorch(askConfirmation=True)
+        torch = torchLogic.installTorch(askConfirmation="cu118")
         if torch is None:
           slicer.util.messageBox('PyTorch extension needs to be installed manually to use this module.')
 

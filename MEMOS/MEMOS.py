@@ -25,7 +25,7 @@ class MEMOS(ScriptedLoadableModule):
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
         self.parent.title = "MEMOS"  # TODO make this more human readable by adding spaces
-        self.parent.categories = ["MEMOS"]
+        self.parent.categories = ["SlicerMorph.MEMOS"]
         self.parent.dependencies = []
         self.parent.contributors = [
             "Sara Rolfe (SCRI), Murat Maga (SCRI, UW)"]  # replace with "Firstname Lastname (Organization)"

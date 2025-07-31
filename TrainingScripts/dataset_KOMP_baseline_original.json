@@ -1,0 +1,456 @@
+{
+"description": "KOMP 15.5",
+"labels": {
+    "0": "background",
+    "1": "left lung",
+    "2": "cranial lobe",
+    "3": "middle lobe",
+    "4": "caudal lobe",
+    "5": "accessory lobe",
+    "6": "left kidney",
+    "7": "right kidney",
+    "8": "stomach wall",
+    "9": "stomach lumen",
+    "10": "medial lobe of liver",
+    "11": "left lobe of liver ",
+    "12": "right lobe of liver",
+    "13": "caudate lobe of liver",
+    "14": "left adrenal",
+    "15": "right adrenal",
+    "16": "rectum",
+    "17": "bladder",
+    "18": "left ventricle",
+    "19": "right ventricle",
+    "20": "left thymic rudiment",
+    "21": "right thymic rudiment",
+    "22": "third ventricle",
+    "23": "mesencephalic vesicle",
+    "24": "fourth ventricle",
+    "25": "cerebral aqueduct",
+    "26": "left lateral ventricle",
+    "27": "right lateral ventricle",
+    "28": "right olfactory bulb",
+    "29": "left olfacotory bulb",
+    "30": "right thalamus ",
+    "31": "left thalamus",
+    "32": "right hypothamalus ",
+    "33": "left hypothalmus",
+    "34": "right septal area",
+    "35": "left septal area",
+    "36": "left neopallial cortex abd amygdala",
+    "37": "right neopallial cortex and amygdala",
+    "38": "right striatum",
+    "39": "left striatum ",
+    "40": "right ventricular zone",
+    "41": "left ventricular zone",
+    "42": "pons",
+    "43": "left cerebellar primordium ",
+    "44": "right cerebellar primordium",
+    "45": "midbrain",
+    "46": "medulla oblongata",
+    "47": "spinal cord",
+    "48": "vertebrae",
+    "49": "left ventricle chamber",
+    "50": "right ventricle chamber"
+},
+"licence": "yt",
+"modality": {
+    "0": "CT"
+},
+"name": "KOMP",
+"numTest": 5,
+"numTraining": 74,
+"reference": "IMPC",
+"release": "1.0 12/20/2021",
+"tensorImageSize": "3D",
+"test": [
+    {
+        "image": "imagesTs/ABEU_K3160_2.nii.gz" 
+    },
+    {
+        "image": "imagesTs/ABFE_N2681_11.nii.gz"
+    },
+    {
+        "image": "imagesTs/ABSY_K1755_13.nii.gz"
+    },
+    {
+        "image": "imagesTs/AATQ_K112_29.nii.gz"
+    }, 
+    {
+        "image": "imagesTs/AAWB_K272_19.nii.gz"
+    }
+
+],
+"training": [
+    {
+        "image": "imagesTr/ABIF_K1592_3.nii.gz",
+        "label": "labelsTr/ABIF_K1592_3.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABOU_K1836_12.nii.gz",
+        "label": "labelsTr/ABOU_K1836_12.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ACCB_K2388_13.nii.gz",
+        "label": "labelsTr/ACCB_K2388_13.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AATQ_K113_23.nii.gz",
+        "label": "labelsTr/AATQ_K113_23.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABFA_N1930_14.nii.gz",
+        "label": "labelsTr/ABFA_N1930_14.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABHW_K1303_7.nii.gz",
+        "label": "labelsTr/ABHW_K1303_7.nii.gz"
+    },    
+    {
+    	"image": "imagesTr/AATQ_K113_11.nii.gz",
+        "label": "labelsTr/AATQ_K113_11.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ACIH_K2991_18.nii.gz",
+        "label": "labelsTr/ACIH_K2991_18.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAPQ_K1076_4.nii.gz",
+        "label": "labelsTr/AAPQ_K1076_4.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AARV_N2310_15.nii.gz",
+        "label": "labelsTr/AARV_N2310_15.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABFE_N2682_1.nii.gz",
+        "label": "labelsTr/ABFE_N2682_1.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAZE_K2270_39.nii.gz",
+        "label": "labelsTr/AAZE_K2270_39.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABDY_N3324_42.nii.gz",
+        "label": "labelsTr/ABDY_N3324_42.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABCM_K1403_70.nii.gz",
+        "label": "labelsTr/ABCM_K1403_70.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAZD_K2009_24.nii.gz",
+        "label": "labelsTr/AAZD_K2009_24.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAWF_K372_3.nii.gz",
+        "label": "labelsTr/AAWF_K372_3.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABEI_N1706_7.nii.gz",
+        "label": "labelsTr/ABEI_N1706_7.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAWC_K245_15.nii.gz",
+        "label": "labelsTr/AAWC_K245_15.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAWC_K244_41.nii.gz",
+        "label": "labelsTr/AAWC_K244_41.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAZD_K2009_6.nii.gz",
+        "label": "labelsTr/AAZD_K2009_6.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABJM_K1365_23.nii.gz",
+        "label": "labelsTr/ABJM_K1365_23.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABDT_N2698_29.nii.gz",
+        "label": "labelsTr/ABDT_N2698_29.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAWC_K244_36.nii.gz",
+        "label": "labelsTr/AAWC_K244_36.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABIF_K1339_10.nii.gz",
+        "label": "labelsTr/ABIF_K1339_10.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ACCG_K2466_19.nii.gz",
+        "label": "labelsTr/ACCG_K2466_19.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ACAX_K2313_28.nii.gz",
+        "label": "labelsTr/ACAX_K2313_28.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAUP_N1752_23.nii.gz",
+        "label": "labelsTr/AAUP_N1752_23.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAZE_K2270_41.nii.gz",
+        "label": "labelsTr/AAZE_K2270_41.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ACCG_K2347_36.nii.gz",
+        "label": "labelsTr/ACCG_K2347_36.nii.gz"
+    },
+        {
+        "image": "imagesTr/ABEI_N1721_10.nii.gz", 
+        "label": "labelsTr/ABEI_N1721_10.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABFA_N1930_9.nii.gz",
+        "label": "labelsTr/ABFA_N1930_9.nii.gz"
+    }, 
+    {
+        "image": "imagesTr/AATQ_K113_8.nii.gz", 
+        "label": "labelsTr/AATQ_K113_8.nii.gz"
+    },
+    {
+        "image": "imagesTr/AAWF_K372_13.nii.gz", 
+        "label": "labelsTr/AAWF_K372_13.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABIW_N2173_24.nii.gz",
+        "label": "labelsTr/ABIW_N2173_24.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABHV_N2230_6.nii.gz",
+        "label": "labelsTr/ABHV_N2230_6.nii.gz"
+    }, 
+    {
+        "image": "imagesTr/ABTQ_K2033_13.nii.gz",
+        "label": "labelsTr/ABTQ_K2033_13.nii.gz"
+    }, 
+    {
+        "image": "imagesTr/ABDT_N2698_30.nii.gz", 
+        "label": "labelsTr/ABDT_N2698_30.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABLS_K1424_51.nii.gz",
+        "label": "labelsTr/ABLS_K1424_51.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABJM_K1365_25.nii.gz",
+        "label": "labelsTr/ABJM_K1365_25.nii.gz"
+    }, 
+    {
+        "image": "imagesTr/ACAX_K2313_26.nii.gz", 
+        "label": "labelsTr/ACAX_K2313_26.nii.gz"
+    }, 
+    {
+        "image": "imagesTr/ACDD_K2776_14.nii.gz", 
+        "label": "labelsTr/ACDD_K2776_14.nii.gz"
+    },
+    {
+        "image": "imagesTr/ACLU_K3340_4.nii.gz", 
+        "label": "labelsTr/ACLU_K3340_4.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABLR_K1329_19.nii.gz", 
+        "label": "labelsTr/ABLR_K1329_19.nii.gz"
+    },
+    {
+        "image": "imagesTr/ACDD_K2800_6.nii.gz", 
+        "label": "labelsTr/ACDD_K2800_6.nii.gz"
+    },
+    {
+        "image": "imagesTr/AATQ_K112_44.nii.gz", 
+        "label": "labelsTr/AATQ_K112_44.nii.gz"
+    },
+    {
+        "image": "imagesTr/ACCB_K2389_10.nii.gz", 
+        "label": "labelsTr/ACCB_K2389_10.nii.gz"
+    },
+    {
+        "image": "imagesTr/AAWB_K272_22.nii.gz", 
+        "label": "labelsTr/AAWB_K272_22.nii.gz"
+    },
+    {
+        "image": "imagesTr/AAWB_K346_45.nii.gz", 
+        "label": "labelsTr/AAWB_K346_45.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABIW_N2172_25.nii.gz",
+        "label": "labelsTr/ABIW_N2172_25.nii.gz"
+    }, 
+    {
+        "image": "imagesTr/ABLW_K1686_5.nii.gz", 
+        "label": "labelsTr/ABLW_K1686_5.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABQL_K1758_12.nii.gz", 
+        "label": "labelsTr/ABQL_K1758_12.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABSY_K1915_24.nii.gz", 
+        "label": "labelsTr/ABSY_K1915_24.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABEU_K3319_11.nii.gz", 
+        "label": "labelsTr/ABEU_K3319_11.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABDY_N3324_10.nii.gz", 
+        "label": "labelsTr/ABDY_N3324_10.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABHV_N2821_36.nii.gz", 
+        "label": "labelsTr/ABHV_N2821_36.nii.gz"
+    },
+    {
+        "image": "imagesTr/AATQ_K113_25.nii.gz", 
+        "label": "labelsTr/AATQ_K113_25.nii.gz"
+    },
+    {
+        "image": "imagesTr/AAMN_N304_2.nii.gz", 
+        "label": "labelsTr/AAMN_N304_2.nii.gz"
+    },
+    {
+        "image": "imagesTr/ACLU_K3338_14.nii.gz", 
+        "label": "labelsTr/ACLU_K3338_14.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABQL_K1756_53.nii.gz", 
+        "label": "labelsTr/ABQL_K1756_53.nii.gz"
+    },
+    {
+        "image": "imagesTr/AAWB_K346_14.nii.gz", 
+        "label": "labelsTr/AAWB_K346_14.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABCM_K1403_43.nii.gz", 
+        "label": "labelsTr/ABCM_K1403_43.nii.gz"
+    },
+    {
+        "image": "imagesTr/ACGE_K2797_2.nii.gz", 
+        "label": "labelsTr/ACGE_K2797_2.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABOU_K1837_1.nii.gz", 
+        "label": "labelsTr/ABOU_K1837_1.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABTQ_K2037_8.nii.gz", 
+        "label": "labelsTr/ABTQ_K2037_8.nii.gz"
+    },
+    {
+        "image": "imagesTr/AAWB_K346_40.nii.gz",
+        "label": "labelsTr/AAWB_K346_40.nii.gz"
+    },
+    {
+        "image": "imagesTr/AARV_N1759_6.nii.gz",
+        "label": "labelsTr/AARV_N1759_6.nii.gz"
+    },
+    {
+        "image": "imagesTr/ACIH_K3076_6.nii.gz",
+        "label": "labelsTr/ACIH_K3076_6.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABLR_K1412_13.nii.gz",
+        "label": "labelsTr/ABLR_K1412_13.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABHW_K1302_16.nii.gz",
+        "label": "labelsTr/ABHW_K1302_16.nii.gz"
+    },
+    {
+        "image": "imagesTr/AARV_N2824_10.nii.gz",
+        "label": "labelsTr/AARV_N2824_10.nii.gz"
+    },
+    {
+        "image": "imagesTr/AARV_N2310_30.nii.gz",
+        "label": "labelsTr/AARV_N2310_30.nii.gz"
+    },
+    {
+        "image": "imagesTr/ACGE_K2867_7.nii.gz",
+        "label": "labelsTr/ACGE_K2867_7.nii.gz"
+    },
+    {
+        "image": "imagesTr/AAWC_K245_21.nii.gz",
+        "label": "labelsTr/AAWC_K245_21.nii.gz"
+    },
+    {
+        "image": "imagesTr/ABLW_K1584_6.nii.gz",
+        "label": "labelsTr/ABLW_K1584_6.nii.gz"
+    }
+],
+"validation": [
+    {
+    	"image": "imagesTr/AAMN_N305_10.nii.gz",
+        "label": "labelsTr/AAMN_N305_10.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAMN_N305_14.nii.gz",
+        "label": "labelsTr/AAMN_N305_14.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAMN_N305_15.nii.gz",
+        "label": "labelsTr/AAMN_N305_15.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAMN_N305_17.nii.gz",
+        "label": "labelsTr/AAMN_N305_17.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAMN_N305_23.nii.gz",
+        "label": "labelsTr/AAMN_N305_23.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAMN_N305_26.nii.gz",
+        "label": "labelsTr/AAMN_N305_26.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAMN_N305_9.nii.gz",
+        "label": "labelsTr/AAMN_N305_9.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAMN_N306_12.nii.gz",
+        "label": "labelsTr/AAMN_N306_12.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAPN_K1026_14.nii.gz",
+        "label": "labelsTr/AAPN_K1026_14.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAPN_K1026_3.nii.gz",
+        "label": "labelsTr/AAPN_K1026_3.nii.gz"
+    },
+    {
+        "image": "imagesTr/AAPQ_K1014_17.nii.gz",
+        "label": "labelsTr/AAPQ_K1014_17.nii.gz"
+    },
+    {
+        "image": "imagesTr/AATQ_K112_28.nii.gz", 
+        "label": "labelsTr/AATQ_K112_28.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAWB_K269_40.nii.gz",
+        "label": "labelsTr/AAWB_K269_40.nii.gz"
+    },
+    {
+        "image": "imagesTr/AAWC_K244_19.nii.gz", 
+        "label": "labelsTr/AAWC_K244_19.nii.gz"
+    },
+    {
+    	"image": "imagesTr/AAWF_K371_9.nii.gz",
+        "label": "labelsTr/AAWF_K371_9.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABBO_K751_4.nii.gz",
+        "label": "labelsTr/ABBO_K751_4.nii.gz"
+    },
+    {
+    	"image": "imagesTr/ABGF_K1122_16.nii.gz",
+        "label": "labelsTr/ABGF_K1122_16.nii.gz"
+    }
+]
+}
+
+
+
+

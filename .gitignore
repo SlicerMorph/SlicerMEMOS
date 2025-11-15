@@ -28,3 +28,6 @@ tags
 
 # Ignore pyc files ...
 *.pyc
+./out/
+*.log
+*.ipynb_checkpoints

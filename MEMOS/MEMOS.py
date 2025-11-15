@@ -474,6 +474,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       return
 
     def processInference(self, volumePath, modelPath, outputLabelPath, colorNode):
+      inputVolume = {"image": volumePath}
       # Get path to inference script
       self.moduleDir = os.path.dirname(slicer.util.getModule('MEMOS').path)
       inferenceScriptPyFile = os.path.join(self.moduleDir, "Scripts", "MEMOS_inference.py")
@@ -482,7 +483,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       if not pythonSlicerExecutablePath:
         raise RuntimeError("Python was not found")
       MEMOS_inferenceCommand = [ pythonSlicerExecutablePath, str(inferenceScriptPyFile),
-        "--volume-path", str(volumePath),
+        "--volume-path", str(inputVolume),
         "--model-path", str(modelPath),
         "--output-path", str(outputLabelPath),
         "--color-node", str(colorNode) ]
@@ -521,21 +522,18 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         slicer.util.pip_install('einops')
 
       # Install MONAI and restart if the version was updated.
-      # Using MONAI 1.3.2 for Python 3.12 compatibility while maintaining
-      # backward compatibility with models trained on MONAI 0.9.x
-      # MONAI 1.4+ changed UNETR architecture incompatibly
-      monaiVersion = "1.3.2"
+      monaiVersion = "0.9.0"
       try:
         import monai
         if version.parse(monai.__version__) != version.parse(monaiVersion):
-          logging.debug(f'MEMOS requires MONAI version {monaiVersion} for model compatibility. Installing... (it may take several minutes)')
+          logging.debug(f'MEMOS requires MONAI version {monaiVersion}. Installing... (it may take several minutes)')
           slicer.util.pip_uninstall('monai')
-          slicer.util.pip_install('monai[pynrrd,fire]==' + monaiVersion)
-          if slicer.util.confirmOkCancelDisplay(f'MONAI version was updated to {monaiVersion}.\n Click OK to restart Slicer.'):
+          slicer.util.pip_install('monai[pynrrd,fire]=='+ monaiVersion)
+          if slicer.util.confirmOkCancelDisplay(f'MONAI version was updated {monaiVersion}.\n Click OK restart Slicer.'):
             slicer.util.restart()
       except:
         logging.debug('MEMOS requires installation of the MONAI Python package. Installing... (it may take several minutes)')
-        slicer.util.pip_install('monai[pynrrd,fire]==' + monaiVersion)
+        slicer.util.pip_install('monai[pynrrd,fire]=='+ monaiVersion)
       try:
         import fire
       except:

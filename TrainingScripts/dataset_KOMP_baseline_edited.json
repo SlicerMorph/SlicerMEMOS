@@ -1,298 +1,294 @@
 {
-"description": "KOMP 15.5",
-"labels": {
-    "0": "background",
-    "1": "left lung",
-    "2": "cranial lobe",
-    "3": "middle lobe",
-    "4": "caudal lobe",
-    "5": "accessory lobe",
-    "6": "left kidney",
-    "7": "right kidney",
-    "8": "stomach wall",
-    "9": "stomach lumen",
-    "10": "medial lobe of liver",
-    "11": "left lobe of liver ",
-    "12": "right lobe of liver",
-    "13": "caudate lobe of liver",
-    "14": "left adrenal",
-    "15": "right adrenal",
-    "16": "rectum",
-    "17": "bladder",
-    "18": "left ventricle",
-    "19": "right ventricle",
-    "20": "left thymic rudiment",
-    "21": "right thymic rudiment",
-    "22": "third ventricle",
-    "23": "mesencephalic vesicle",
-    "24": "fourth ventricle",
-    "25": "cerebral aqueduct",
-    "26": "left lateral ventricle",
-    "27": "right lateral ventricle",
-    "28": "right olfactory bulb",
-    "29": "left olfacotory bulb",
-    "30": "right thalamus ",
-    "31": "left thalamus",
-    "32": "right hypothamalus ",
-    "33": "left hypothalmus",
-    "34": "right septal area",
-    "35": "left septal area",
-    "36": "left neopallial cortex abd amygdala",
-    "37": "right neopallial cortex and amygdala",
-    "38": "right striatum",
-    "39": "left striatum ",
-    "40": "right ventricular zone",
-    "41": "left ventricular zone",
-    "42": "pons",
-    "43": "left cerebellar primordium ",
-    "44": "right cerebellar primordium",
-    "45": "midbrain",
-    "46": "medulla oblongata",
-    "47": "spinal cord",
-    "48": "vertebrae",
-    "49": "left ventricle chamber",
-    "50": "right ventricle chamber"
-},
-"licence": "yt",
-"modality": {
-    "0": "CT"
-},
-"name": "KOMP",
-"numTest": 11,
-"numTraining": 45,
-"reference": "IMPC",
-"release": "1.0 12/20/2021",
-"tensorImageSize": "3D",
-"training": [
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_AARV_N1759-6-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_AARV_N1759-6_cleaned.seg.nrrd"
+    "description": "KOMP 15.5",
+    "labels": {
+        "0": "background",
+        "1": "left lung",
+        "2": "cranial lobe",
+        "3": "middle lobe",
+        "4": "caudal lobe",
+        "5": "accessory lobe",
+        "6": "left kidney",
+        "7": "right kidney",
+        "8": "stomach wall",
+        "9": "stomach lumen",
+        "10": "medial lobe of liver",
+        "11": "left lobe of liver ",
+        "12": "right lobe of liver",
+        "13": "caudate lobe of liver",
+        "14": "left adrenal",
+        "15": "right adrenal",
+        "16": "rectum",
+        "17": "bladder",
+        "18": "left ventricle",
+        "19": "right ventricle",
+        "20": "left thymic rudiment",
+        "21": "right thymic rudiment",
+        "22": "third ventricle",
+        "23": "mesencephalic vesicle",
+        "24": "fourth ventricle",
+        "25": "cerebral aqueduct",
+        "26": "left lateral ventricle",
+        "27": "right lateral ventricle",
+        "28": "right olfactory bulb",
+        "29": "left olfacotory bulb",
+        "30": "right thalamus ",
+        "31": "left thalamus",
+        "32": "right hypothamalus ",
+        "33": "left hypothalmus",
+        "34": "right septal area",
+        "35": "left septal area",
+        "36": "left neopallial cortex abd amygdala",
+        "37": "right neopallial cortex and amygdala",
+        "38": "right striatum",
+        "39": "left striatum ",
+        "40": "right ventricular zone",
+        "41": "left ventricular zone",
+        "42": "pons",
+        "43": "left cerebellar primordium ",
+        "44": "right cerebellar primordium",
+        "45": "midbrain",
+        "46": "medulla oblongata",
+        "47": "spinal cord",
+        "48": "vertebrae",
+        "49": "left ventricle chamber",
+        "50": "right ventricle chamber"
     },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_AARV_N2310-15-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_AARV_N2310-15_cleaned.seg.nrrd"
+    "licence": "yt",
+    "modality": {
+        "0": "CT"
     },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_AAUP_N1752-23-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_AAUP_N1752-23_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_AAZD_K2009-24-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_AAZD_K2009-24_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_AAZE_K2270-39-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_AAZE_K2270-39_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ABCM_K1403-43-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ABCM_K1403-43_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ABCM_K1403-70-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ABCM_K1403-70_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ABDY_N3324-42-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ABDY_N3324-42_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ABEI_N1721-10-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ABEI_N1721-10_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ABEU_K3319-11-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ABEU_K3319-11_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ABFE_N2682-1-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ABFE_N2682-1_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ABHV_N2230-6-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ABHV_N2230-6_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ABQL_K1758-12-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ABQL_K1758-12_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ABSY_K1915-24-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ABSY_K1915-24_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_AARV_N2310-30-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_AARV_N2310-30_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_AARV_N2824-10-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_AARV_N2824-10_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_AAZD_K2009-6-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_AAZD_K2009-6_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ABDT_N2698-30-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ABDT_N2698-30_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ABHV_N2821-36-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ABHV_N2821-36_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ABLR_K1329-19-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ABLR_K1329-19_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ABLS_K1424-51-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ABLS_K1424-51_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ABOU_K1836-12-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ABOU_K1836-12_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ABOU_K1837-1-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ABOU_K1837-1_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ABQL_K1756-53-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ABQL_K1756-53_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ACAX_K2313-26-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ACAX_K2313-26_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ACCB_K2389-10-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ACCB_K2389-10_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAMN_N304-2-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAMN_N304-2_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAMN_N305-14-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAMN_N305-14_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAMN_N305-17-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAMN_N305-17_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAPQ_K1014-17-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAPQ_K1014-17_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K112-29-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K112-29_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K112-44-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K112-44_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K112-48-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K112-48_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K113-8-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K113-8_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K113-11-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K113-11_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWB_K269-40-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWB_K269-40_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWB_K346-14-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWB_K346-14_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K244-19-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K244-19_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K244-33-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K244-33_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K244-36-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K244-36_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K245-15-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K245-15_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K245-21-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K245-21_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWF_K372-3-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWF_K372-3_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWF_K372-13-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWF_K372-13_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABGF_K1122-11-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABGF_K1122-11_cleaned.seg.nrrd"
-    }
-],
-"testing": [
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ACCB_K2388-13-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ACCB_K2388-13_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ACCG_K2347-36-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ACCG_K2347-36_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Female_ACIH_K2991-18-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Female_ACIH_K2991-18_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ACDD_K2800-6-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ACDD_K2800-6_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ACGE_K2797-2-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ACGE_K2797-2_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/Male_ACLU_K3338-14-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/Male_ACLU_K3338-14_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABGH_K1030-1-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABGH_K1030-1_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABHW_K1302-16-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABHW_K1302-16_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABHW_K1303-7-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABHW_K1303-7_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABJM_K1365-23-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABJM_K1365-23_cleaned.seg.nrrd"
-    },
-    {
-        "image": "di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABJM_K1365-25-e15.5_baseline.nrrd",
-        "label": "di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABJM_K1365-25_cleaned.seg.nrrd"
-    }
-]
+    "name": "KOMP",
+    "numTest": 11,
+    "numTraining": 45,
+    "reference": "IMPC",
+    "release": "1.0 12/20/2021",
+    "tensorImageSize": "3D",
+    "training": [
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_AARV_N1759-6-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_AARV_N1759-6_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_AARV_N2310-15-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_AARV_N2310-15_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_AAUP_N1752-23-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_AAUP_N1752-23_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_AAZD_K2009-24-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_AAZD_K2009-24_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_AAZE_K2270-39-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_AAZE_K2270-39_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ABCM_K1403-43-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ABCM_K1403-43_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ABCM_K1403-70-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ABCM_K1403-70_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ABDY_N3324-42-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ABDY_N3324-42_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ABEI_N1721-10-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ABEI_N1721-10_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ABEU_K3319-11-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ABEU_K3319-11_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ABFE_N2682-1-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ABFE_N2682-1_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ABHV_N2230-6-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ABHV_N2230-6_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ABQL_K1758-12-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ABQL_K1758-12_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ABSY_K1915-24-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ABSY_K1915-24_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_AARV_N2310-30-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_AARV_N2310-30_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_AARV_N2824-10-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_AARV_N2824-10_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_AAZD_K2009-6-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_AAZD_K2009-6_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ABDT_N2698-30-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ABDT_N2698-30_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ABHV_N2821-36-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ABHV_N2821-36_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ABLR_K1329-19-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ABLR_K1329-19_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ABLS_K1424-51-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ABLS_K1424-51_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ABOU_K1836-12-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ABOU_K1836-12_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ABOU_K1837-1-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ABOU_K1837-1_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ABQL_K1756-53-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ABQL_K1756-53_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ACAX_K2313-26-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ACAX_K2313-26_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ACCB_K2389-10-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ACCB_K2389-10_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAMN_N304-2-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAMN_N304-2_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAMN_N305-14-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAMN_N305-14_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAMN_N305-17-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAMN_N305-17_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAPQ_K1014-17-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAPQ_K1014-17_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K112-29-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K112-29_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K112-44-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K112-44_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K112-48-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K112-48_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K113-8-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K113-8_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AATQ_K113-11-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AATQ_K113-11_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWB_K269-40-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWB_K269-40_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWB_K346-14-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWB_K346-14_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K244-19-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K244-19_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K244-33-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K244-33_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K244-36-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K244-36_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K245-15-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K245-15_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWC_K245-21-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWC_K245-21_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWF_K372-3-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWF_K372-3_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_AAWF_K372-13-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_AAWF_K372-13_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABGF_K1122-11-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABGF_K1122-11_cleaned.seg.nrrd"
+        }
+    ],
+    "testing": [
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ACCB_K2388-13-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ACCB_K2388-13_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ACCG_K2347-36-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ACCG_K2347-36_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Female_ACIH_K2991-18-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Female_ACIH_K2991-18_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ACDD_K2800-6-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ACDD_K2800-6_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ACGE_K2797-2-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ACGE_K2797-2_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/Male_ACLU_K3338-14-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/Male_ACLU_K3338-14_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABGH_K1030-1-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABGH_K1030-1_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABHW_K1302-16-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABHW_K1302-16_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABHW_K1303-7-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABHW_K1303-7_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABJM_K1365-23-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABJM_K1365-23_cleaned.seg.nrrd"
+        },
+        {
+            "image": "/home/di/MONAI/MEMOS_retrain/baseline/images/undeterminedSex_ABJM_K1365-25-e15.5_baseline.nrrd",
+            "label": "/home/di/MONAI/MEMOS_retrain/baseline/labels/undeterminedSex_ABJM_K1365-25_cleaned.seg.nrrd"
+        }
+    ]
 }
-
-
-
-

@@ -36,7 +36,32 @@ def main(volume_path, model_path, output_path, color_node):
   print_config()
   torch.set_num_threads(24)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-  image_dim = 128
+  
+  # Load model state dict to detect resolution
+  if device.type == "cpu":
+      state_dict = torch.load(model_path, map_location='cpu')
+  else:
+      state_dict = torch.load(model_path)
+  
+  # Detect image dimension from model's positional embedding size
+  # The vit.patch_embedding.position_embeddings has shape [1, num_patches, hidden_size]
+  # For 128^3: num_patches = (128/16)^3 = 512
+  # For 192^3: num_patches = (192/16)^3 = 1728
+  pos_embed_key = 'vit.patch_embedding.position_embeddings'
+  if pos_embed_key in state_dict:
+      num_patches = state_dict[pos_embed_key].shape[1]
+      if num_patches == 512:
+          image_dim = 128
+          print(f"Detected 128^3 model (num_patches={num_patches})")
+      elif num_patches == 1728:
+          image_dim = 192
+          print(f"Detected 192^3 model (num_patches={num_patches})")
+      else:
+          print(f"Warning: Unexpected num_patches={num_patches}, defaulting to 128^3")
+          image_dim = 128
+  else:
+      print("Warning: Could not detect model resolution, defaulting to 128^3")
+      image_dim = 128
 
   # UNETR architecture - updated for MONAI 1.4.0
   net = UNETR(
@@ -54,10 +79,7 @@ def main(volume_path, model_path, output_path, color_node):
       dropout_rate=0.0,
   ).to(device)
 
-  if device.type == "cpu":
-      net.load_state_dict(torch.load(model_path, map_location='cpu'))
-  else:
-      net.load_state_dict(torch.load(model_path))
+  net.load_state_dict(state_dict)
   net.eval()
 
   with torch.no_grad():

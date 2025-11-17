@@ -1,0 +1,27 @@
+MEMOS Model Weights Information
+================================
+
+RECOMMENDED MODEL (Better real-world performance):
+File: /home/maga/Desktop/Memos-retraining/best_metric_model_largePatch (dice=0.72).pth
+Training: 25,000 iterations with minimal augmentation
+Validation Dice: 0.72
+Real-world Performance: BETTER - generalizes well to clean images
+
+NOT RECOMMENDED (Overfitted to augmentation):
+File: /home/maga/Desktop/Memos-retraining/best_metric_model_largePatch.pth  
+Training: 25,000 iterations with aggressive augmentation (multiplier=3)
+Best Validation Dice: 0.9022 (at iteration 11,000)
+Final Validation Dice: 0.9009
+Real-world Performance: WORSE - learned augmentation artifacts
+
+LESSON LEARNED:
+===============
+High validation Dice ≠ Better real-world performance
+Aggressive augmentation can hurt generalization
+Model needs to learn clean anatomical features, not noise patterns
+
+For future retraining:
+- Use augmentation_multiplier=1 or remove it entirely
+- Reduce Gaussian noise intensity
+- Focus on geometric augmentations (rotations, flips) only
+- Validate on completely separate, clean test set

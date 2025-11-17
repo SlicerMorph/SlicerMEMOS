@@ -31,3 +31,10 @@ tags
 ./out/
 *.log
 *.ipynb_checkpoints
+
+# Training outputs
+TrainingScripts/train_*.log
+TrainingScripts/*.pth
+TrainingScripts/nohup.out
+TrainingScripts/__pycache__/
+*.pyc

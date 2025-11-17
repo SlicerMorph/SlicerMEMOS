@@ -474,7 +474,6 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       return
 
     def processInference(self, volumePath, modelPath, outputLabelPath, colorNode):
-      inputVolume = {"image": volumePath}
       # Get path to inference script
       self.moduleDir = os.path.dirname(slicer.util.getModule('MEMOS').path)
       inferenceScriptPyFile = os.path.join(self.moduleDir, "Scripts", "MEMOS_inference.py")
@@ -483,7 +482,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
       if not pythonSlicerExecutablePath:
         raise RuntimeError("Python was not found")
       MEMOS_inferenceCommand = [ pythonSlicerExecutablePath, str(inferenceScriptPyFile),
-        "--volume-path", str(inputVolume),
+        "--volume-path", str(volumePath),
         "--model-path", str(modelPath),
         "--output-path", str(outputLabelPath),
         "--color-node", str(colorNode) ]
@@ -522,7 +521,7 @@ class MEMOSLogic(ScriptedLoadableModuleLogic):
         slicer.util.pip_install('einops')
 
       # Install MONAI and restart if the version was updated.
-      monaiVersion = "0.9.0"
+      monaiVersion = "1.4.0"
       try:
         import monai
         if version.parse(monai.__version__) != version.parse(monaiVersion):

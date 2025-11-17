@@ -1,40 +1,23 @@
 import os
-import logging
-import sys
-import tempfile
-import shutil
 import time
 import fire
-from glob import glob
-from packaging import version
 
 # import MONAI and dependencies
 import nibabel as nib
 import numpy as np
 import torch
-import einops
 
 from monai.config import print_config
-from monai.data import Dataset, DataLoader, create_test_image_3d, decollate_batch
 from monai.inferers import sliding_window_inference
 from monai.networks.nets import UNETR
-from monai.data.nifti_writer import write_nifti
 
 from monai.transforms import (
-  Activationsd,
-  AsDiscreted,
-  AddChanneld,
   Compose,
   EnsureChannelFirstd,
-  Invertd,
   LoadImaged,
   Orientationd,
-  SaveImaged,
-  Spacingd,
-  CropForegroundd,
-  EnsureTyped,
   ScaleIntensityRanged,
-  ToTensord
+  EnsureTyped,
 )
 
 def main(volume_path, model_path, output_path, color_node):
@@ -46,8 +29,7 @@ def main(volume_path, model_path, output_path, color_node):
       ScaleIntensityRanged(
           keys=["image"], a_min=-175, a_max=250,
           b_min=0.0, b_max=1.0, clip=True),
-      AddChanneld(keys=["image"]),
-      ToTensord(keys=["image"]),
+      EnsureTyped(keys=["image"]),
   ])
 
   # set up devices
@@ -56,6 +38,7 @@ def main(volume_path, model_path, output_path, color_node):
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   image_dim = 128
 
+  # UNETR architecture - updated for MONAI 1.4.0
   net = UNETR(
       in_channels=1,
       out_channels=51,
@@ -64,8 +47,9 @@ def main(volume_path, model_path, output_path, color_node):
       hidden_size=768,
       mlp_dim=3072,
       num_heads=12,
-      pos_embed="perceptron",
+      proj_type="perceptron",  # Updated from pos_embed for MONAI 1.4.0
       norm_name="instance",
+      conv_block=True,         # Added to match training architecture
       res_block=True,
       dropout_rate=0.0,
   ).to(device)
@@ -78,19 +62,23 @@ def main(volume_path, model_path, output_path, color_node):
 
   with torch.no_grad():
     start=time.time()
-    image = pre_transforms(volume_path)['image'].to(device)
+    # Wrap volume_path in dictionary for MONAI transforms
+    image = pre_transforms({"image": volume_path})['image']
+    # Add batch dimension: [C, H, W, D] -> [1, C, H, W, D]
+    image = image.unsqueeze(0).to(device)
+    
     output_raw = sliding_window_inference(image, (image_dim, image_dim, image_dim), 4, net, overlap=0.8)
     output_final= torch.argmax(output_raw, dim=1).detach().cpu()[0, :, :, :]
     end = time.time()
     print("MEMOS Inference time: ", end - start)
     print("Writing: ", output_path)
-    write_nifti(
-      data=output_final,
-      file_name=output_path
-      )
+    
+    # Updated for MONAI 1.4.0 - use nibabel instead of deprecated write_nifti
+    output_array = output_final.numpy()
+    original_img = nib.load(volume_path)
+    output_img = nib.Nifti1Image(output_array.astype(np.int16), original_img.affine, original_img.header)
+    nib.save(output_img, output_path)
 
 if __name__ == '__main__':
   torch.cuda.set_device(0)
   fire.Fire(main)
-
-

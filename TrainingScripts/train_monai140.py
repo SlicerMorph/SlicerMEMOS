@@ -42,8 +42,11 @@ from monai.data import (
 
 
 import torch
+from torch.utils.data import Dataset
 
 print_config()
+
+# Cell 3: Removed AugmentedDataset - using minimal augmentation instead
 
 # Cell 4
 directory = "/home/maga/Desktop/Memos-retraining"
@@ -82,6 +85,7 @@ train_transforms = Compose(
             image_key="image",
             image_threshold=0,
         ),
+        # Original augmentation strategy (matching unetr_komp_segmentation_3d_final.ipynb)
         RandRotate90d(
             keys=["image", "label"],
             prob=0.10,
@@ -94,14 +98,14 @@ train_transforms = Compose(
         ),
         RandGaussianNoised(
             keys=['image', 'label'],
-            prob=0.1, 
+            prob=0.1,
             mean=0,
-            std=.1,
+            std=0.1,
         ),
         RandAffined(
             keys=['image', 'label'],
             mode=('bilinear', 'nearest'),
-            prob=0.1, 
+            prob=0.1,
             spatial_size=(image_dim, image_dim, image_dim),
             rotate_range=(0, 0, np.pi/15),
             scale_range=(0.1, 0.1, 0.1),
@@ -120,7 +124,12 @@ val_transforms = Compose(
         ),
         Orientationd(keys=["image", "label"], axcodes="RAS"),
         ScaleIntensityRanged(
-            keys=["image"], a_min=-175, a_max=250, b_min=0.0, b_max=1.0, clip=True
+            keys=["image"],
+            a_min=0,
+            a_max=255,
+            b_min=0.0,
+            b_max=1.0,
+            clip=True,
         ),
         CropForegroundd(keys=["image", "label"], source_key="image"),
         EnsureTyped(keys=["image", "label"]),
@@ -139,6 +148,8 @@ train_ds = CacheDataset(
     cache_rate=1.0,
     num_workers=8,
 )
+# Using minimal augmentation for better generalization
+print(f"Training samples: {len(datalist)}")
 train_loader = DataLoader(
     train_ds, batch_size=1, shuffle=True, num_workers=8, pin_memory=True
 )
@@ -171,6 +182,15 @@ model = UNETR(
 loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
 torch.backends.cudnn.benchmark = True
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=1e-5)
+
+# Load pretrained weights from previous training
+pretrained_path = "/home/maga/Desktop/Memos-retraining/best_metric_model_largePatch.pth"
+if os.path.exists(pretrained_path):
+    print(f"Loading pretrained weights from: {pretrained_path}")
+    model.load_state_dict(torch.load(pretrained_path))
+    print("Pretrained weights loaded successfully!")
+else:
+    print(f"Warning: Pretrained weights not found at {pretrained_path}, starting from scratch")
 
 # Cell 13
 def validation(epoch_iterator_val):
@@ -251,7 +271,8 @@ def train(global_step, train_loader, dice_val_best, global_step_best):
 
 
 # Cell 14
-max_iterations = 60000
+# Continue training from pretrained model for 25000 more steps
+max_iterations = 25000
 eval_num = 500
 post_label = AsDiscrete(to_onehot=51)
 post_pred = AsDiscrete(argmax=True, to_onehot=51)

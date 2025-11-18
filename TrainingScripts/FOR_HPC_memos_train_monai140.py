@@ -299,7 +299,7 @@ def train_epoch(epoch):
 
 # Cell 14
 max_iterations = 10000  # 4 GPUs, reduce from 60k to 10k
-eval_num = 100  # Validate every 100 steps (~8 epochs)
+eval_num = 96  # Validate every 96 steps (every 8 epochs, 12 steps/epoch)
 # post_label and post_pred defined earlier (before validation function)
 # dice_metric created locally in validation() function to avoid DDP sync issues
 

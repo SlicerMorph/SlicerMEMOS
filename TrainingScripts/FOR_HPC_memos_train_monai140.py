@@ -50,7 +50,6 @@ import torch
 print_config()
 
 # Initialize distributed training
-# Set NCCL timeout to 60 minutes (validation is slow on 192^3 volumes)
 os.environ['TORCH_NCCL_BLOCKING_WAIT'] = '1'
 os.environ['TORCH_NCCL_ASYNC_ERROR_HANDLING'] = '1'
 import datetime
@@ -93,7 +92,7 @@ train_transforms = Compose(
             keys=["image", "label"],
             label_key="label",
             spatial_size=(image_dim, image_dim, image_dim),
-            pos=1,
+            pos=2,  # Increased: sample more from labeled regions
             neg=1,
             num_samples=4,
             image_key="image",
@@ -179,6 +178,9 @@ val_loader = DataLoader(
 # Cell 11
 torch.set_num_threads(24)
 
+# Pre-trained weights (set to None to train from scratch, or specify path to load existing weights)
+pretrained_weights = "/data/hps/home/amaga/magalab/user/amaga/MEMOS_retrain/best_metric_model_largePatch_original_10k.pth"  # Example: "/path/to/best_metric_model_largePatch.pth"
+
 model = UNETR(
     in_channels=1,
     out_channels=51,
@@ -193,6 +195,12 @@ model = UNETR(
     res_block=True,
     dropout_rate=0.0,
 ).to(device)
+
+# Load pre-trained weights if specified
+if pretrained_weights is not None:
+    model.load_state_dict(torch.load(pretrained_weights, map_location=device))
+    if local_rank == 0:
+        print(f"Loaded pre-trained weights from: {pretrained_weights}")
 
 # Wrap with DistributedDataParallel
 model = DDP(
@@ -234,7 +242,8 @@ def validation():
             
             # All ranks run inference on same data
             val_outputs = sliding_window_inference(
-                val_inputs, (image_dim, image_dim, image_dim), 4, model.module
+                val_inputs, (image_dim, image_dim, image_dim), 4, model.module,
+                overlap=0.75, mode='gaussian'  # Better edge/boundary handling
             )
             
             val_labels_list = decollate_batch(val_labels)
@@ -379,7 +388,8 @@ if local_rank == 0:
         val_inputs = torch.unsqueeze(img, 1).to(device)
         val_labels = torch.unsqueeze(label, 1).to(device)
         val_outputs = sliding_window_inference(
-            val_inputs, (image_dim, image_dim, image_dim), 4, model.module, overlap=0.8
+            val_inputs, (image_dim, image_dim, image_dim), 4, model.module,
+            overlap=0.75, mode='gaussian'  # Consistent with validation
         )
         # Use center slice for visualization
         center_slice = val_inputs.shape[-1] // 2
